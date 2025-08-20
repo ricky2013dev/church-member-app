@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { apiService } from '../services/api';
+import { getSundayDates, formatDateOnly } from '../utils/dateUtils';
 import type { Family } from '../types';
 
 const SearchMember: React.FC = () => {
@@ -9,7 +10,8 @@ const SearchMember: React.FC = () => {
   const [families, setFamilies] = useState<Family[]>([]);
   const [filteredFamilies, setFilteredFamilies] = useState<Family[]>([]);
   const [searchName, setSearchName] = useState('');
-  const [filterWeek, setFilterWeek] = useState('');
+  const [filterDateFrom, setFilterDateFrom] = useState('');
+  const [filterDateTo, setFilterDateTo] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -35,21 +37,36 @@ const SearchMember: React.FC = () => {
     fetchFamilies();
   }, []);
 
+  const sundayDates = getSundayDates();
+
   useEffect(() => {
     let filtered = families;
 
     if (searchName) {
       filtered = filtered.filter(family => 
         family.family_name.toLowerCase().includes(searchName.toLowerCase()) ||
-        family.members.some(member => 
+        family.members?.some(member => 
           member.korean_name?.toLowerCase().includes(searchName.toLowerCase()) ||
           member.english_name?.toLowerCase().includes(searchName.toLowerCase())
         )
       );
     }
 
-    if (filterWeek) {
-      filtered = filtered.filter(family => family.input_date === filterWeek);
+    if (filterDateFrom || filterDateTo) {
+      filtered = filtered.filter(family => {
+        const familyDate = family.input_date;
+        let dateInRange = true;
+        
+        if (filterDateFrom) {
+          dateInRange = dateInRange && familyDate >= filterDateFrom;
+        }
+        
+        if (filterDateTo) {
+          dateInRange = dateInRange && familyDate <= filterDateTo;
+        }
+        
+        return dateInRange;
+      });
     }
 
     if (filterStatus) {
@@ -57,7 +74,7 @@ const SearchMember: React.FC = () => {
     }
 
     setFilteredFamilies(filtered);
-  }, [searchName, filterWeek, filterStatus, families]);
+  }, [searchName, filterDateFrom, filterDateTo, filterStatus, families]);
 
   const getChildrenCount = (family: Family) => {
     return family.members?.filter(member => member.relationship === 'child').length || 0;
@@ -85,14 +102,45 @@ const SearchMember: React.FC = () => {
           
           <div className="form-group">
             <label className="form-label">
-              {t('inputDate')}
+              {t('inputDate')} - From (Sunday only)
             </label>
-            <input
-              type="date"
-              value={filterWeek}
-              onChange={(e) => setFilterWeek(e.target.value)}
-              className="form-input"
-            />
+            <select
+              value={filterDateFrom}
+              onChange={(e) => {
+                const newFromDate = e.target.value;
+                setFilterDateFrom(newFromDate);
+                // Clear "To" date if it's earlier than the new "From" date
+                if (filterDateTo && newFromDate && filterDateTo < newFromDate) {
+                  setFilterDateTo('');
+                }
+              }}
+              className="form-input form-select"
+            >
+              <option value="">All dates</option>
+              {sundayDates
+                .filter(date => !filterDateTo || date <= filterDateTo)
+                .map(date => (
+                  <option key={date} value={date}>{date}</option>
+                ))}
+            </select>
+          </div>
+          
+          <div className="form-group">
+            <label className="form-label">
+              {t('inputDate')} - To (Sunday only)
+            </label>
+            <select
+              value={filterDateTo}
+              onChange={(e) => setFilterDateTo(e.target.value)}
+              className="form-input form-select"
+            >
+              <option value="">All dates</option>
+              {sundayDates
+                .filter(date => !filterDateFrom || date >= filterDateFrom)
+                .map(date => (
+                  <option key={date} value={date}>{date}</option>
+                ))}
+            </select>
           </div>
           
           <div className="form-group">
@@ -108,6 +156,21 @@ const SearchMember: React.FC = () => {
               <option value="Visitor">{t('visitor')}</option>
               <option value="Registration Complete">{t('registrationComplete')}</option>
             </select>
+          </div>
+          
+          <div className="form-group" style={{display: 'flex', alignItems: 'end'}}>
+            <button
+              onClick={() => {
+                setSearchName('');
+                setFilterDateFrom('');
+                setFilterDateTo('');
+                setFilterStatus('');
+              }}
+              className="btn btn-outline"
+              style={{width: '100%'}}
+            >
+              Clear Filters
+            </button>
           </div>
         </div>
       </div>
@@ -160,7 +223,9 @@ const SearchMember: React.FC = () => {
                       <p>
                         {t(family.registration_status === 'Visitor' ? 'visitor' : 'registrationComplete')}
                       </p>
-                      <p style={{marginTop: '0.25rem'}}>{family.input_date}</p>
+                      <p style={{marginTop: '0.25rem'}}>
+                        {formatDateOnly(family.input_date)}
+                      </p>
                     </div>
                   </div>
                   <div className="family-item-right">

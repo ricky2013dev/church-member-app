@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { apiService } from '../services/api';
+import { getSundayDates, getMostRecentSunday } from '../utils/dateUtils';
 import type { Family, Member } from '../types';
 
 const AddEditMember: React.FC = () => {
@@ -15,7 +16,7 @@ const AddEditMember: React.FC = () => {
     family_name: '',
     family_picture_url: '',
     registration_status: 'Visitor',
-    input_date: new Date().toISOString().split('T')[0],
+    input_date: getMostRecentSunday(),
     notes: '',
     created_at: '',
     updated_at: '',
@@ -276,19 +277,6 @@ const AddEditMember: React.FC = () => {
     } finally {
       setUploadingPicture(false);
     }
-  };
-
-  // Ensure input date is only on Sundays
-  const getSundayDates = () => {
-    const dates = [];
-    const today = new Date();
-    for (let i = -52; i < 1; i++) { // Past year 
-      const date = new Date(today);
-      date.setDate(today.getDate() + (i * 7));
-      const sunday = new Date(date.setDate(date.getDate() - date.getDay()));
-      dates.push(sunday.toISOString().split('T')[0]);
-    }
-    return dates.sort().reverse();
   };
 
   const sundayDates = getSundayDates();

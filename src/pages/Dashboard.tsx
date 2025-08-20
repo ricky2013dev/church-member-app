@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { apiService } from '../services/api';
+import { formatDateOnly } from '../utils/dateUtils';
 import type { Family, WeeklyStats } from '../types';
 import { Link } from 'react-router-dom';
 
@@ -114,7 +115,9 @@ const Dashboard: React.FC = () => {
                   </div>
                 </div>
                 <div className="family-item-right">
-                  <div className="family-date">{family.input_date}</div>
+                  <div className="family-date">
+                    {formatDateOnly(family.input_date)}
+                  </div>
                   <div className="family-children">
                     {family.members?.filter(m => m.relationship === 'child').length || 0} {t('numberOfChildren')}
                   </div>
