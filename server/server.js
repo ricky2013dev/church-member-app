@@ -3,6 +3,7 @@ const cors = require('cors');
 const { Pool } = require('pg');
 const multer = require('multer');
 const path = require('path');
+const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();
 
 const app = express();
@@ -18,6 +19,12 @@ const pool = new Pool({
   user: process.env.DB_USER || 'church_app',
   password: process.env.DB_PASSWORD || 'church_password',
 });
+
+// Supabase client for storage
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
+);
 
 
 // Mock data for fallback
@@ -99,20 +106,22 @@ const mockFamilies = [
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use('/uploads', express.static('uploads'));
 
-// File upload configuration
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/');
+// File upload configuration - use memory storage for Supabase
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
   },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  fileFilter: (req, file, cb) => {
+    // Allow only image files
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'));
+    }
   }
 });
-
-const upload = multer({ storage: storage });
 
 // Routes
 
@@ -415,15 +424,50 @@ app.get('/api/stats/weekly', async (req, res) => {
   }
 });
 
-// File upload endpoint
-app.post('/api/upload', upload.single('file'), (req, res) => {
+// File upload endpoint - using Supabase Storage
+app.post('/api/upload', upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
     
-    const fileUrl = `/uploads/${req.file.filename}`;
-    res.json({ url: fileUrl });
+    const file = req.file;
+    const type = req.body.type || 'general'; // 'family' or 'member' or 'general'
+    
+    // Generate unique filename
+    const fileExt = path.extname(file.originalname);
+    const fileName = `${type}/${Date.now()}-${Math.round(Math.random() * 1E9)}${fileExt}`;
+    
+    // Upload to Supabase Storage
+    const { data, error } = await supabase.storage
+      .from('church-pictures')
+      .upload(fileName, file.buffer, {
+        contentType: file.mimetype,
+        upsert: false
+      });
+    
+    if (error) {
+      console.error('Supabase upload error:', error);
+      
+      if (error.message && error.message.includes('Bucket not found')) {
+        return res.status(500).json({ 
+          error: 'Storage bucket not found. Please create the "church-pictures" bucket in Supabase Dashboard.',
+          details: 'Go to Storage > Create Bucket > Name: "church-pictures" > Public: true'
+        });
+      }
+      
+      return res.status(500).json({ 
+        error: 'Failed to upload file to storage',
+        details: error.message 
+      });
+    }
+    
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('church-pictures')
+      .getPublicUrl(fileName);
+    
+    res.json({ url: publicUrl });
   } catch (error) {
     console.error('Error uploading file:', error);
     res.status(500).json({ error: 'Failed to upload file' });
