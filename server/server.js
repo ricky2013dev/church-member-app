@@ -8,6 +8,8 @@ require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 3000;
 
+console.error('test', process.env.DB_HOST)
+
 // Database connection
 const pool = new Pool({
   host: process.env.DB_HOST || '127.0.0.1',
@@ -16,6 +18,7 @@ const pool = new Pool({
   user: process.env.DB_USER || 'church_app',
   password: process.env.DB_PASSWORD || 'church_password',
 });
+
 
 // Mock data for fallback
 const mockFamilies = [
