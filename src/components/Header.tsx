@@ -44,13 +44,13 @@ const Header: React.FC = () => {
               onClick={() => setLanguage('ko')}
               className={`language-btn ${language === 'ko' ? 'active' : ''}`}
             >
-              한국어
+              KR
             </button>
             <button
               onClick={() => setLanguage('en')}
               className={`language-btn ${language === 'en' ? 'active' : ''}`}
             >
-              English
+              EN
             </button>
           </div>
         </div>

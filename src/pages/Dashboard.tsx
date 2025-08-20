@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { apiService } from '../services/api';
 import type { Family, WeeklyStats } from '../types';
+import { Link } from 'react-router-dom';
 
 const Dashboard: React.FC = () => {
   const { t } = useLanguage();
@@ -88,7 +89,11 @@ const Dashboard: React.FC = () => {
         <h2 className="card-header">{t('recentFamilies')}</h2>
         <div className="family-list">
           {recentFamilies.map((family) => (
-            <div key={family.id} className="family-item">
+            <Link
+            key={family.id}
+            to={`/edit/${family.id}`}
+            className="family-item"
+            >
               <div className="family-item-content">
                 <div className="family-item-left">
                   <div className="family-photo">
@@ -115,7 +120,7 @@ const Dashboard: React.FC = () => {
                   </div>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

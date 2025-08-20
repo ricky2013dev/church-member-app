@@ -25,6 +25,8 @@ const AddEditMember: React.FC = () => {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [uploadingPicture, setUploadingPicture] = useState(false);
+  const [showIndividualPictures, setShowIndividualPictures] = useState(false);
 
   useEffect(() => {
     if (isEditing && id) {
@@ -34,7 +36,8 @@ const AddEditMember: React.FC = () => {
           setError(null);
           const familyData = await apiService.getFamily(parseInt(id));
           setFamily(familyData);
-          setMembers(familyData.members);
+          const membersData = familyData.members.sort((a, b) => a.relationship.localeCompare(b.relationship));
+          setMembers(membersData);
         } catch (err) {
           console.error('Error fetching family:', err);
           setError('Failed to load family data');
@@ -252,6 +255,29 @@ const AddEditMember: React.FC = () => {
     navigate('/search');
   };
 
+  const handleFamilyPictureUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setUploadingPicture(true);
+      setError(null);
+      
+      const uploadResult = await apiService.uploadFile(file, 'family');
+      
+      setFamily(prev => ({
+        ...prev,
+        family_picture_url: uploadResult.url
+      }));
+      
+    } catch (err) {
+      console.error('Error uploading family picture:', err);
+      setError(`Failed to upload family picture: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    } finally {
+      setUploadingPicture(false);
+    }
+  };
+
   // Ensure input date is only on Sundays
   const getSundayDates = () => {
     const dates = [];
@@ -340,33 +366,79 @@ const AddEditMember: React.FC = () => {
             </div>
             
             <div className="form-group">
-              <label className="form-label">
-                {t('familyPicture')}
-              </label>
-              <input
-                type="file"
-                accept="image/*"
-                className="form-input"
-              />
-            </div>
-          </div>
-          
-          <div className="form-group">
             <label className="form-label">
               Family Notes
             </label>
             <textarea
               value={family.notes}
               onChange={(e) => handleFamilyChange('notes', e.target.value)}
-              rows={3}
+              rows={5}
               className="form-input form-textarea"
             />
           </div>
+
+            <div className="form-group">
+              <label className="form-label">
+                {t('familyPicture')}
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFamilyPictureUpload}
+                disabled={uploadingPicture}
+                className="form-input"
+              />
+              {uploadingPicture && (
+                <div style={{fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem'}}>
+                  Uploading picture...
+                </div>
+              )}
+              {family.family_picture_url && (
+                <div style={{marginTop: '0.5rem'}}>
+                  <img
+                    src={family.family_picture_url}
+                    alt="Family picture"
+                    style={{
+                      maxWidth: '200px',
+                      maxHeight: '150px',
+                      objectFit: 'cover',
+                      borderRadius: '0.375rem',
+                      border: '1px solid #d1d5db'
+                    }}
+                  />
+                  <div style={{fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem'}}>
+                    Picture uploaded successfully
+                  </div>
+                </div>
+              )}
+            </div>
+
+          </div>
+          
+
         </div>
 
         {/* Members */}
         <div className="mb-8">
-          <h2 className="card-header">Family Members</h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h2 className="card-header" style={{ margin: 0 }}>Family Members</h2>
+            <button
+              type="button"
+              onClick={() => setShowIndividualPictures(!showIndividualPictures)}
+              className="btn btn-secondary"
+              style={{ 
+                fontSize: '0.875rem', 
+                padding: '0.5rem 1rem',
+                backgroundColor: showIndividualPictures ? '#059669' : '#6b7280',
+                color: 'white',
+                border: 'none',
+                borderRadius: '0.375rem',
+                cursor: 'pointer'
+              }}
+            >
+              {showIndividualPictures ? '-' : '+'} 
+            </button>
+          </div>
           
           {members.map((member, index) => (
             <div key={index} className="member-section">
@@ -398,7 +470,6 @@ const AddEditMember: React.FC = () => {
                     className="form-input"
                   />
                 </div>
-                
                 <div className="form-group">
                   <label className="form-label">
                     {t('englishName')}
@@ -410,7 +481,6 @@ const AddEditMember: React.FC = () => {
                     className="form-input"
                   />
                 </div>
-                
                 <div className="form-group">
                   <label className="form-label">
                     {t('phoneNumber')}
@@ -434,6 +504,9 @@ const AddEditMember: React.FC = () => {
                     className="form-input"
                   />
                 </div>
+
+
+
                 
                 {member.relationship === 'child' && (
                   <>
@@ -459,39 +532,50 @@ const AddEditMember: React.FC = () => {
                         {t('gradeLevel')}
                       </label>
                       <input
-                        type="text"
+                        type="number"
                         value={member.grade_level || ''}
                         onChange={(e) => handleMemberChange(index, 'grade_level', e.target.value)}
                         className="form-input"
-                        placeholder="예: 초1, 중2, 고3"
+                        placeholder="1-12"
+                        min={0}
+                        max={12}
                       />
                     </div>
                   </>
                 )}
                 
-                <div className="form-group">
+                {showIndividualPictures && (
+                  <>
+                  <div className="form-group">
+                    <label className="form-label">
+                      {t('individualPicture')}
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="form-input"
+                    />
+                  </div>
+                  <div className="form-group mt-4">
                   <label className="form-label">
-                    {t('individualPicture')}
+                    {t('memo')}
                   </label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="form-input"
+                  <textarea
+                    value={member.memo || ''}
+                    onChange={(e) => handleMemberChange(index, 'memo', e.target.value)}
+                    rows={2}
+                    className="form-input form-textarea"
                   />
                 </div>
+                </>
+                )}
+                
+         
+                  
+           
               </div>
               
-              <div className="form-group mt-4">
-                <label className="form-label">
-                  {t('memo')}
-                </label>
-                <textarea
-                  value={member.memo || ''}
-                  onChange={(e) => handleMemberChange(index, 'memo', e.target.value)}
-                  rows={2}
-                  className="form-input form-textarea"
-                />
-              </div>
+              
             </div>
           ))}
           
