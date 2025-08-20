@@ -17,7 +17,7 @@ const translations = {
     addNew: 'Add New',
     familyName: '가정명',
     registrationStatus: '등록 상태',
-    inputDate: '입력일',
+    inputDate: '방문일',
     numberOfChildren: '자녀 수',
     visitor: '방문자',
     registrationComplete: '등록 완료',

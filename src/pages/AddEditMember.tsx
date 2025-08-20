@@ -282,7 +282,7 @@ const AddEditMember: React.FC = () => {
   const getSundayDates = () => {
     const dates = [];
     const today = new Date();
-    for (let i = -52; i <= 4; i++) { // Past year + next month
+    for (let i = -52; i < 1; i++) { // Past year 
       const date = new Date(today);
       date.setDate(today.getDate() + (i * 7));
       const sunday = new Date(date.setDate(date.getDate() - date.getDay()));
