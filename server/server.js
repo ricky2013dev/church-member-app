@@ -345,7 +345,16 @@ app.post('/api/members', async (req, res) => {
     `;
     
     const result = await pool.query(query, [
-      family_id, korean_name, english_name, relationship, phone_number, birth_date, picture_url, memo, member_group, grade_level
+      family_id, 
+      korean_name || null, 
+      english_name || null, 
+      relationship, 
+      phone_number || null, 
+      birth_date || null, 
+      picture_url || null, 
+      memo || null, 
+      member_group || null, 
+      grade_level || null
     ]);
     
     const member = {
@@ -356,7 +365,9 @@ app.post('/api/members', async (req, res) => {
     res.status(201).json(member);
   } catch (error) {
     console.error('Error creating member:', error);
-    res.status(500).json({ error: 'Failed to create member' });
+    console.error('Error details:', error.message);
+    console.error('Error code:', error.code);
+    res.status(500).json({ error: 'Failed to create member', details: error.message });
   }
 });
 
@@ -374,7 +385,16 @@ app.put('/api/members/:id', async (req, res) => {
     `;
     
     const result = await pool.query(query, [
-      korean_name, english_name, relationship, phone_number, birth_date, picture_url, memo, member_group, grade_level, memberId
+      korean_name || null, 
+      english_name || null, 
+      relationship, 
+      phone_number || null, 
+      birth_date || null, 
+      picture_url || null, 
+      memo || null, 
+      member_group || null, 
+      grade_level || null, 
+      memberId
     ]);
     
     if (result.rows.length === 0) {
