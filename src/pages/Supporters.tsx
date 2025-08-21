@@ -219,22 +219,21 @@ const Supporters: React.FC = () => {
   return (
     <div className="container">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0rem' }}>
-        <h1 className="page-title">Supporters</h1>
-        <div style={{ display: 'flex', gap: '0rem' }}>
+        <div >
           {user?.group_code === 'ALL' && (
             <button
               onClick={() => setIsManagingGroupCodes(!isManagingGroupCodes)}
-              className="btn btn-outline"
+              className="btn p-0 btn-outline"
             >
-              {isManagingGroupCodes ? 'Hide' : 'Manage'} Group Pin
+              {isManagingGroupCodes ? '-' : '+'} G Pin
             </button>
           )}
           <button
             onClick={() => setIsAddingSupporter(true)}
-            className="btn btn-primary"
+            className="btn btn-primary p-0 ml-1 "
             disabled={isAddingSupporter}
           >
-            + Add New 
+            + Supp 
           </button>
         </div>
       </div>
@@ -551,7 +550,7 @@ const Supporters: React.FC = () => {
                         
                         <div>
                           <h4 style={{margin: 0, fontSize: '1.125rem', fontWeight: 600}}>
-                            {supporter.name} --{supporter.display_sort} 
+                            {supporter.name}
                             <span style={{
                               marginLeft: '0.5rem',
                               fontSize: '0.75rem',
@@ -578,15 +577,15 @@ const Supporters: React.FC = () => {
                           className="btn btn-outline"
                           style={{fontSize: '0.75rem', padding: '0.25rem 0.5rem'}}
                         >
-                          Edit
+                          E
                         </button>
-                        
+
                         { user?.group_code !== 'NOR'  && (<button
                           onClick={() => handleDelete(supporter)}
                           className="btn btn-danger"
                           style={{fontSize: '0.75rem', padding: '0.25rem 0.5rem'}}
                         >
-                          Delete
+                          X
                         </button>)}
                         
                       </div>)}
