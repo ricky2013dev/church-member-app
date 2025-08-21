@@ -3,38 +3,45 @@ import { Link } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { apiService } from '../services/api';
 import { getSundayDates, formatDateOnly } from '../utils/dateUtils';
-import type { Family } from '../types';
+import type { Family, Supporter } from '../types';
 
 const SearchMember: React.FC = () => {
   const { t } = useLanguage();
   const [families, setFamilies] = useState<Family[]>([]);
   const [filteredFamilies, setFilteredFamilies] = useState<Family[]>([]);
+  const [supporters, setSupporters] = useState<Supporter[]>([]);
   const [searchName, setSearchName] = useState('');
   const [filterDateFrom, setFilterDateFrom] = useState('');
   const [filterDateTo, setFilterDateTo] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('');
+  const [filterSupporterIds, setFilterSupporterIds] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchFamilies = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
         setError(null);
-        const data = await apiService.getFamilies();
-        setFamilies(data);
-        setFilteredFamilies(data);
+        const [familiesData, supportersData] = await Promise.all([
+          apiService.getFamilies(),
+          apiService.getSupporters('NOR', 'on') // Only NOR supporters with 'on' status for filtering
+        ]);
+        setFamilies(familiesData);
+        setFilteredFamilies(familiesData);
+        setSupporters(supportersData);
       } catch (err) {
-        console.error('Error fetching families:', err);
-        setError('Failed to load families. Please check if the server is running.');
+        console.error('Error fetching data:', err);
+        setError('Failed to load data. Please check if the server is running.');
         setFamilies([]);
         setFilteredFamilies([]);
+        setSupporters([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchFamilies();
+    fetchData();
   }, []);
 
   const sundayDates = getSundayDates();
@@ -73,11 +80,27 @@ const SearchMember: React.FC = () => {
       filtered = filtered.filter(family => family.registration_status === filterStatus);
     }
 
+    if (filterSupporterIds.length > 0) {
+      filtered = filtered.filter(family => 
+        family.main_supporter_id && filterSupporterIds.includes(family.main_supporter_id)
+      );
+    }
+
     setFilteredFamilies(filtered);
-  }, [searchName, filterDateFrom, filterDateTo, filterStatus, families]);
+  }, [searchName, filterDateFrom, filterDateTo, filterStatus, filterSupporterIds, families]);
 
   const getChildrenCount = (family: Family) => {
     return family.members?.filter(member => member.relationship === 'child').length || 0;
+  };
+
+  const handleSupporterToggle = (supporterId: number) => {
+    setFilterSupporterIds(prev => {
+      if (prev.includes(supporterId)) {
+        return prev.filter(id => id !== supporterId);
+      } else {
+        return [...prev, supporterId];
+      }
+    });
   };
 
   return (
@@ -158,6 +181,52 @@ const SearchMember: React.FC = () => {
             </select>
           </div>
           
+          <div className="form-group">
+            <label className="form-label">
+              Main Supporters (Multiple Selection)
+            </label>
+            <div style={{
+              maxHeight: '120px', 
+              overflowY: 'auto', 
+              border: '1px solid #d1d5db', 
+              borderRadius: '0.375rem', 
+              padding: '0.5rem'
+            }}>
+              {supporters.length === 0 ? (
+                <div style={{color: '#6b7280', fontSize: '0.875rem', padding: '0.5rem'}}>
+                  No supporters available
+                </div>
+              ) : (
+                supporters.map(supporter => (
+                  <label 
+                    key={supporter.id}
+                    style={{
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '0.5rem',
+                      padding: '0.25rem 0',
+                      cursor: 'pointer',
+                      fontSize: '0.875rem'
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={filterSupporterIds.includes(supporter.id)}
+                      onChange={() => handleSupporterToggle(supporter.id)}
+                      style={{margin: 0}}
+                    />
+                    <span>{supporter.name}</span>
+                  </label>
+                ))
+              )}
+            </div>
+            {filterSupporterIds.length > 0 && (
+              <div style={{fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem'}}>
+                {filterSupporterIds.length} supporter(s) selected
+              </div>
+            )}
+          </div>
+          
           <div className="form-group" style={{display: 'flex', alignItems: 'end'}}>
             <button
               onClick={() => {
@@ -165,6 +234,7 @@ const SearchMember: React.FC = () => {
                 setFilterDateFrom('');
                 setFilterDateTo('');
                 setFilterStatus('');
+                setFilterSupporterIds([]);
               }}
               className="btn btn-outline"
               style={{width: '100%'}}
@@ -226,6 +296,16 @@ const SearchMember: React.FC = () => {
                       <p style={{marginTop: '0.25rem'}}>
                         {formatDateOnly(family.input_date)}
                       </p>
+                      {family.main_supporter && (
+                        <p style={{marginTop: '0.25rem', fontSize: '0.875rem', color: '#059669'}}>
+                          Main: {family.main_supporter.name}
+                        </p>
+                      )}
+                      {family.sub_supporter && (
+                        <p style={{marginTop: '0.1rem', fontSize: '0.875rem', color: '#0891b2'}}>
+                          Sub: {family.sub_supporter.name}
+                        </p>
+                      )}
                     </div>
                   </div>
                   <div className="family-item-right">

@@ -1,4 +1,4 @@
-import type { Family, Member } from '../types';
+import type { Family, Member, Supporter, GroupPinCode } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
@@ -34,6 +34,8 @@ class ApiService {
     input_date: string;
     notes: string;
     family_picture_url: string;
+    main_supporter_id?: number | null;
+    sub_supporter_id?: number | null;
     members: Array<{
       korean_name?: string;
       english_name?: string;
@@ -52,7 +54,10 @@ class ApiService {
     });
   }
 
-  async updateFamily(id: number, family: Partial<Family>): Promise<Family> {
+  async updateFamily(id: number, family: Partial<Family> & {
+    main_supporter_id?: number | null;
+    sub_supporter_id?: number | null;
+  }): Promise<Family> {
     return this.fetchWithAuth(`/families/${id}`, {
       method: 'PUT',
       body: JSON.stringify(family),
@@ -107,6 +112,91 @@ class ApiService {
     }
 
     return response.json();
+  }
+
+  // Supporter operations
+  async getSupporters(groupCode?: string, status?: 'on' | 'off'): Promise<Supporter[]> {
+    const params = new URLSearchParams();
+    if (groupCode) params.append('group_code', groupCode);
+    if (status) params.append('status', status);
+    
+    const url = params.toString() ? `/supporters?${params.toString()}` : '/supporters';
+    return this.fetchWithAuth(url);
+  }
+
+  async getSupporter(id: number): Promise<Supporter> {
+    return this.fetchWithAuth(`/supporters/${id}`);
+  }
+
+  async createSupporter(supporter: {
+    name: string;
+    group_code: string;
+    phone_number?: string;
+    email?: string;
+    profile_picture_url?: string;
+    gender: 'male' | 'female';
+    status?: 'on' | 'off';
+    pin_code: string;
+    display_sort: number;
+  }): Promise<Supporter> {
+    return this.fetchWithAuth('/supporters', {
+      method: 'POST',
+      body: JSON.stringify(supporter),
+    });
+  }
+
+  async updateSupporter(id: number, supporter: {
+    name: string;
+    group_code: string;
+    phone_number?: string;
+    email?: string;
+    profile_picture_url?: string;
+    gender: 'male' | 'female';
+    status: 'on' | 'off';
+    pin_code: string;
+    display_sort: number;
+  }): Promise<Supporter> {
+    return this.fetchWithAuth(`/supporters/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(supporter),
+    });
+  }
+
+  async deleteSupporter(id: number): Promise<void> {
+    return this.fetchWithAuth(`/supporters/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Authentication
+  async login(supporter_id: number, pin_code: string, group_pin_code: string): Promise<{
+    success: boolean;
+    supporter: {
+      id: number;
+      name: string;
+      group_code: string;
+      gender: 'male' | 'female';
+      phone_number?: string;
+      email?: string;
+      profile_picture_url?: string;
+    };
+  }> {
+    return this.fetchWithAuth('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ supporter_id, pin_code, group_pin_code }),
+    });
+  }
+
+  // Group pin code management
+  async getGroupPinCodes(): Promise<GroupPinCode[]> {
+    return this.fetchWithAuth('/group-pin-codes');
+  }
+
+  async updateGroupPinCode(group_code: string, pin_code: string): Promise<GroupPinCode> {
+    return this.fetchWithAuth(`/group-pin-codes/${group_code}`, {
+      method: 'PUT',
+      body: JSON.stringify({ pin_code }),
+    });
   }
 }
 

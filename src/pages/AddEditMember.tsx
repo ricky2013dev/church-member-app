@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { apiService } from '../services/api';
 import { getSundayDates, getMostRecentSunday } from '../utils/dateUtils';
-import type { Family, Member } from '../types';
+import type { Family, Member, Supporter } from '../types';
 
 const AddEditMember: React.FC = () => {
   const { id } = useParams();
@@ -18,16 +18,32 @@ const AddEditMember: React.FC = () => {
     registration_status: 'Visitor',
     input_date: getMostRecentSunday(),
     notes: '',
+    main_supporter_id: undefined,
+    sub_supporter_id: undefined,
     created_at: '',
     updated_at: '',
     members: []
   });
 
   const [members, setMembers] = useState<Member[]>([]);
+  const [supporters, setSupporters] = useState<Supporter[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadingPicture, setUploadingPicture] = useState(false);
   const [showIndividualPictures, setShowIndividualPictures] = useState(false);
+
+  useEffect(() => {
+    const fetchSupporters = async () => {
+      try {
+        const supportersData = await apiService.getSupporters('NOR', 'on'); // Only NOR group and 'on' status supporters
+        setSupporters(supportersData);
+      } catch (err) {
+        console.error('Error fetching supporters:', err);
+      }
+    };
+
+    fetchSupporters();
+  }, []);
 
   useEffect(() => {
     if (isEditing && id) {
@@ -136,7 +152,7 @@ const AddEditMember: React.FC = () => {
     setFamily(prev => ({ ...prev, family_name: familyName }));
   }, [members]);
 
-  const handleFamilyChange = (field: keyof Family, value: string) => {
+  const handleFamilyChange = (field: keyof Family, value: string | number | undefined) => {
     setFamily(prev => ({ ...prev, [field]: value }));
   };
 
@@ -191,7 +207,9 @@ const AddEditMember: React.FC = () => {
           registration_status: family.registration_status,
           input_date: family.input_date,
           notes: family.notes,
-          family_picture_url: family.family_picture_url
+          family_picture_url: family.family_picture_url,
+          main_supporter_id: family.main_supporter_id || undefined,
+          sub_supporter_id: family.sub_supporter_id || undefined
         });
 
         // Update or create members
@@ -226,6 +244,8 @@ const AddEditMember: React.FC = () => {
           input_date: family.input_date,
           notes: family.notes || '',
           family_picture_url: family.family_picture_url || '',
+          main_supporter_id: family.main_supporter_id || undefined,
+          sub_supporter_id: family.sub_supporter_id || undefined,
           members: members.map(member => ({
             korean_name: member.korean_name,
             english_name: member.english_name,
@@ -350,6 +370,42 @@ const AddEditMember: React.FC = () => {
               >
                 <option value="Visitor">{t('visitor')}</option>
                 <option value="Registration Complete">{t('registrationComplete')}</option>
+              </select>
+            </div>
+            
+            <div className="form-group">
+              <label className="form-label">
+                Main Supporter
+              </label>
+              <select
+                value={family.main_supporter_id || ''}
+                onChange={(e) => handleFamilyChange('main_supporter_id', e.target.value ? parseInt(e.target.value) : undefined)}
+                className="form-input form-select"
+              >
+                <option value="">Select main supporter</option>
+                {supporters.map(supporter => (
+                  <option key={supporter.id} value={supporter.id}>
+                    {supporter.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="form-group">
+              <label className="form-label">
+                Sub Supporter
+              </label>
+              <select
+                value={family.sub_supporter_id || ''}
+                onChange={(e) => handleFamilyChange('sub_supporter_id', e.target.value ? parseInt(e.target.value) : undefined)}
+                className="form-input form-select"
+              >
+                <option value="">Select sub supporter</option>
+                {supporters.map(supporter => (
+                  <option key={supporter.id} value={supporter.id}>
+                    {supporter.name}
+                  </option>
+                ))}
               </select>
             </div>
             

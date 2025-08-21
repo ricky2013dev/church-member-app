@@ -130,6 +130,20 @@ app.get('/api/families', async (req, res) => {
   try {
     const familiesQuery = `
       SELECT f.*, 
+             json_build_object(
+               'id', ms.id,
+               'name', ms.name,
+               'group_code', ms.group_code,
+               'created_at', ms.created_at,
+               'updated_at', ms.updated_at
+             ) as main_supporter,
+             json_build_object(
+               'id', ss.id,
+               'name', ss.name,
+               'group_code', ss.group_code,
+               'created_at', ss.created_at,
+               'updated_at', ss.updated_at
+             ) as sub_supporter,
              json_agg(
                json_build_object(
                  'id', m.id,
@@ -159,7 +173,10 @@ app.get('/api/families', async (req, res) => {
              ) FILTER (WHERE m.id IS NOT NULL) as members
       FROM families f
       LEFT JOIN members m ON f.id = m.family_id
-      GROUP BY f.id
+      LEFT JOIN supporters ms ON f.main_supporter_id = ms.id
+      LEFT JOIN supporters ss ON f.sub_supporter_id = ss.id
+      GROUP BY f.id, ms.id, ms.name, ms.group_code, ms.created_at, ms.updated_at,
+               ss.id, ss.name, ss.group_code, ss.created_at, ss.updated_at
       ORDER BY f.input_date DESC, f.id DESC
     `;
     
@@ -227,16 +244,17 @@ app.post('/api/families', async (req, res) => {
   try {
     await client.query('BEGIN');
     
-    const { family_name, registration_status, input_date, notes, family_picture_url, members } = req.body;
+    const { family_name, registration_status, input_date, notes, family_picture_url, members, main_supporter_id, sub_supporter_id } = req.body;
     
     // Insert family
     const familyQuery = `
-      INSERT INTO families (family_name, registration_status, input_date, notes, family_picture_url)
-      VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO families (family_name, registration_status, input_date, notes, family_picture_url, main_supporter_id, sub_supporter_id)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *
     `;
     const familyResult = await client.query(familyQuery, [
-      family_name, registration_status, input_date, notes || '', family_picture_url || ''
+      family_name, registration_status, input_date, notes || '', family_picture_url || '', 
+      main_supporter_id || null, sub_supporter_id || null
     ]);
     
     const familyId = familyResult.rows[0].id;
@@ -289,17 +307,19 @@ app.post('/api/families', async (req, res) => {
 app.put('/api/families/:id', async (req, res) => {
   try {
     const familyId = parseInt(req.params.id);
-    const { family_name, registration_status, input_date, notes, family_picture_url } = req.body;
+    const { family_name, registration_status, input_date, notes, family_picture_url, main_supporter_id, sub_supporter_id } = req.body;
     
     const query = `
       UPDATE families 
-      SET family_name = $1, registration_status = $2, input_date = $3, notes = $4, family_picture_url = $5, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $6
+      SET family_name = $1, registration_status = $2, input_date = $3, notes = $4, family_picture_url = $5, 
+          main_supporter_id = $6, sub_supporter_id = $7, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $8
       RETURNING *
     `;
     
     const result = await pool.query(query, [
-      family_name, registration_status, input_date, notes, family_picture_url, familyId
+      family_name, registration_status, input_date, notes, family_picture_url, 
+      main_supporter_id || null, sub_supporter_id || null, familyId
     ]);
     
     if (result.rows.length === 0) {
@@ -471,6 +491,289 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
   } catch (error) {
     console.error('Error uploading file:', error);
     res.status(500).json({ error: 'Failed to upload file' });
+  }
+});
+
+// Supporter endpoints
+
+// Get all supporters
+app.get('/api/supporters', async (req, res) => {
+  try {
+    const { group_code, status } = req.query;
+    
+    let query = 'SELECT * FROM supporters ORDER BY status DESC, name ASC';
+    let params = [];
+    
+    const conditions = [];
+    if (group_code) {
+      conditions.push(`group_code = $${params.length + 1}`);
+      params.push(group_code);
+    }
+    
+    if (status) {
+      conditions.push(`status = $${params.length + 1}`);
+      params.push(status);
+    }
+    
+    if (conditions.length > 0) {
+      query = `SELECT * FROM supporters WHERE ${conditions.join(' AND ')} ORDER BY status DESC, name ASC`;
+    }
+    
+    const result = await pool.query(query, params);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching supporters:', error);
+    res.status(500).json({ error: 'Failed to fetch supporters' });
+  }
+});
+
+// Get single supporter
+app.get('/api/supporters/:id', async (req, res) => {
+  try {
+    const supporterId = parseInt(req.params.id);
+    const result = await pool.query('SELECT * FROM supporters WHERE id = $1', [supporterId]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Supporter not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error fetching supporter:', error);
+    res.status(500).json({ error: 'Failed to fetch supporter' });
+  }
+});
+
+// Create supporter
+app.post('/api/supporters', async (req, res) => {
+  try {
+    const { name, group_code, phone_number, email, profile_picture_url, gender, status, pin_code, display_sort } = req.body;
+    
+    if (!name || !group_code || !gender || !pin_code) {
+      return res.status(400).json({ error: 'Name, group_code, gender, and pin_code are required' });
+    }
+    
+    // Validate group_code exists in database
+    const groupCodeCheck = await pool.query('SELECT COUNT(*) FROM group_pin_codes WHERE group_code = $1', [group_code]);
+    if (parseInt(groupCodeCheck.rows[0].count) === 0) {
+      return res.status(400).json({ error: 'Invalid group_code. Group code does not exist.' });
+    }
+    
+    if (!['male', 'female'].includes(gender)) {
+      return res.status(400).json({ error: 'Invalid gender. Must be male or female' });
+    }
+    
+    if (!/^\d{4}$/.test(pin_code)) {
+      return res.status(400).json({ error: 'Pin code must be exactly 4 digits' });
+    }
+    
+    const supporterStatus = status || 'on';
+    if (!['on', 'off'].includes(supporterStatus)) {
+      return res.status(400).json({ error: 'Invalid status. Must be on or off' });
+    }
+    
+    const query = `
+      INSERT INTO supporters (name, group_code, phone_number, email, profile_picture_url, gender, status, pin_code, display_sort)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      RETURNING *
+    `;
+    
+    const result = await pool.query(query, [
+      name, group_code, phone_number || null, email || null, 
+      profile_picture_url || null, gender, supporterStatus, pin_code, display_sort || 0
+    ]);
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error('Error creating supporter:', error);
+    res.status(500).json({ error: 'Failed to create supporter' });
+  }
+});
+
+// Update supporter
+app.put('/api/supporters/:id', async (req, res) => {
+  try {
+    const supporterId = parseInt(req.params.id);
+    const { name, group_code, phone_number, email, profile_picture_url, gender, status, pin_code, display_sort } = req.body;
+    
+    if (!name || !group_code || !gender || !pin_code) {
+      return res.status(400).json({ error: 'Name, group_code, gender, and pin_code are required' });
+    }
+    
+    // Validate group_code exists in database
+    const groupCodeCheck = await pool.query('SELECT COUNT(*) FROM group_pin_codes WHERE group_code = $1', [group_code]);
+    if (parseInt(groupCodeCheck.rows[0].count) === 0) {
+      return res.status(400).json({ error: 'Invalid group_code. Group code does not exist.' });
+    }
+    
+    if (!['male', 'female'].includes(gender)) {
+      return res.status(400).json({ error: 'Invalid gender. Must be male or female' });
+    }
+    
+    if (!/^\d{4}$/.test(pin_code)) {
+      return res.status(400).json({ error: 'Pin code must be exactly 4 digits' });
+    }
+    
+    const supporterStatus = status || 'on';
+    if (!['on', 'off'].includes(supporterStatus)) {
+      return res.status(400).json({ error: 'Invalid status. Must be on or off' });
+    }
+    
+    const query = `
+      UPDATE supporters 
+      SET name = $1, group_code = $2, phone_number = $3, email = $4, profile_picture_url = $5, 
+          gender = $6, status = $7, pin_code = $8, display_sort = $9, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $10
+      RETURNING *
+    `;
+    
+    const result = await pool.query(query, [
+      name, group_code, phone_number || null, email || null, 
+      profile_picture_url || null, gender, supporterStatus, pin_code, display_sort || 0, supporterId
+    ]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Supporter not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error updating supporter:', error);
+    res.status(500).json({ error: 'Failed to update supporter' });
+  }
+});
+
+// Delete supporter
+app.delete('/api/supporters/:id', async (req, res) => {
+  try {
+    const supporterId = parseInt(req.params.id);
+    
+    // Check if supporter is being used by any families
+    const familyCheck = await pool.query(
+      'SELECT COUNT(*) FROM families WHERE main_supporter_id = $1 OR sub_supporter_id = $1',
+      [supporterId]
+    );
+    
+    if (parseInt(familyCheck.rows[0].count) > 0) {
+      return res.status(400).json({ 
+        error: 'Cannot delete supporter. This supporter is assigned to one or more families.' 
+      });
+    }
+    
+    const result = await pool.query('DELETE FROM supporters WHERE id = $1 RETURNING *', [supporterId]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Supporter not found' });
+    }
+    
+    res.json({ message: 'Supporter deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting supporter:', error);
+    res.status(500).json({ error: 'Failed to delete supporter' });
+  }
+});
+
+// Authentication endpoints
+
+// Login with pin codes
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { supporter_id, pin_code, group_pin_code } = req.body;
+    
+    if (!supporter_id || !pin_code || !group_pin_code) {
+      return res.status(400).json({ error: 'supporter_id, pin_code, and group_pin_code are required' });
+    }
+    
+    if (!/^\d{4}$/.test(pin_code) || !/^\d{4}$/.test(group_pin_code)) {
+      return res.status(400).json({ error: 'Pin codes must be exactly 4 digits' });
+    }
+    
+    // Find supporter by ID and verify pin code
+    const supporterResult = await pool.query(
+      'SELECT * FROM supporters WHERE id = $1 AND pin_code = $2 AND status = $3',
+      [supporter_id, pin_code, 'on']
+    );
+    
+    if (supporterResult.rows.length === 0) {
+      return res.status(401).json({ error: 'Invalid supporter ID, pin code, or supporter is inactive' });
+    }
+    
+    const supporter = supporterResult.rows[0];
+    
+    // Verify group pin code
+    const groupPinResult = await pool.query(
+      'SELECT * FROM group_pin_codes WHERE group_code = $1 AND pin_code = $2',
+      [supporter.group_code, group_pin_code]
+    );
+    
+    if (groupPinResult.rows.length === 0) {
+      return res.status(401).json({ error: 'Invalid group pin code for this supporter group' });
+    }
+    
+    // Login successful
+    res.json({
+      success: true,
+      supporter: {
+        id: supporter.id,
+        name: supporter.name,
+        group_code: supporter.group_code,
+        gender: supporter.gender,
+        phone_number: supporter.phone_number,
+        email: supporter.email,
+        profile_picture_url: supporter.profile_picture_url
+      }
+    });
+  } catch (error) {
+    console.error('Error during login:', error);
+    res.status(500).json({ error: 'Login failed' });
+  }
+});
+
+// Group pin code management endpoints
+
+// Get all group pin codes (only for CAR supporters)
+app.get('/api/group-pin-codes', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM group_pin_codes ORDER BY group_code');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching group pin codes:', error);
+    res.status(500).json({ error: 'Failed to fetch group pin codes' });
+  }
+});
+
+// Update group pin code (only for CAR supporters)
+app.put('/api/group-pin-codes/:group_code', async (req, res) => {
+  try {
+    const { group_code } = req.params;
+    const { pin_code } = req.body;
+    
+    // Validate group_code exists in database
+    const groupCodeCheck = await pool.query('SELECT COUNT(*) FROM group_pin_codes WHERE group_code = $1', [group_code]);
+    if (parseInt(groupCodeCheck.rows[0].count) === 0) {
+      return res.status(400).json({ error: 'Invalid group_code. Group code does not exist.' });
+    }
+    
+    if (!/^\d{4}$/.test(pin_code)) {
+      return res.status(400).json({ error: 'Pin code must be exactly 4 digits' });
+    }
+    
+    const query = `
+      UPDATE group_pin_codes 
+      SET pin_code = $1, updated_at = CURRENT_TIMESTAMP
+      WHERE group_code = $2
+      RETURNING *
+    `;
+    
+    const result = await pool.query(query, [pin_code, group_code]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Group code not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error updating group pin code:', error);
+    res.status(500).json({ error: 'Failed to update group pin code' });
   }
 });
 
