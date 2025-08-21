@@ -25,7 +25,7 @@ const SearchMember: React.FC = () => {
         setError(null);
         const [familiesData, supportersData] = await Promise.all([
           apiService.getFamilies(),
-          apiService.getSupporters('NOR', 'on') // Only NOR supporters with 'on' status for filtering
+          apiService.getSupporters('NOR', 'on'), // Only NOR supporters with 'on' status for filtering
         ]);
         setFamilies(familiesData);
         setFilteredFamilies(familiesData);
@@ -50,12 +50,14 @@ const SearchMember: React.FC = () => {
     let filtered = families;
 
     if (searchName) {
-      filtered = filtered.filter(family => 
-        family.family_name.toLowerCase().includes(searchName.toLowerCase()) ||
-        family.members?.some(member => 
-          member.korean_name?.toLowerCase().includes(searchName.toLowerCase()) ||
-          member.english_name?.toLowerCase().includes(searchName.toLowerCase())
-        )
+      filtered = filtered.filter(
+        family =>
+          family.family_name.toLowerCase().includes(searchName.toLowerCase()) ||
+          family.members?.some(
+            member =>
+              member.korean_name?.toLowerCase().includes(searchName.toLowerCase()) ||
+              member.english_name?.toLowerCase().includes(searchName.toLowerCase())
+          )
       );
     }
 
@@ -63,15 +65,15 @@ const SearchMember: React.FC = () => {
       filtered = filtered.filter(family => {
         const familyDate = family.input_date;
         let dateInRange = true;
-        
+
         if (filterDateFrom) {
           dateInRange = dateInRange && familyDate >= filterDateFrom;
         }
-        
+
         if (filterDateTo) {
           dateInRange = dateInRange && familyDate <= filterDateTo;
         }
-        
+
         return dateInRange;
       });
     }
@@ -81,8 +83,8 @@ const SearchMember: React.FC = () => {
     }
 
     if (filterSupporterIds.length > 0) {
-      filtered = filtered.filter(family => 
-        family.main_supporter_id && filterSupporterIds.includes(family.main_supporter_id)
+      filtered = filtered.filter(
+        family => family.main_supporter_id && filterSupporterIds.includes(family.main_supporter_id)
       );
     }
 
@@ -106,30 +108,26 @@ const SearchMember: React.FC = () => {
   return (
     <div className="container">
       <h1 className="page-title">{t('searchMember')}</h1>
-      
+
       {/* Filters */}
       <div className="filters">
         <div className="form-grid">
           <div className="form-group">
-            <label className="form-label">
-              {t('name')}
-            </label>
+            <label className="form-label">{t('name')}</label>
             <input
               type="text"
               value={searchName}
-              onChange={(e) => setSearchName(e.target.value)}
+              onChange={e => setSearchName(e.target.value)}
               className="form-input"
               placeholder={`${t('search')} ${t('name')}`}
             />
           </div>
-          
+
           <div className="form-group">
-            <label className="form-label">
-              {t('inputDate')} - From (Sunday only)
-            </label>
+            <label className="form-label">{t('inputDate')} - From (Sunday only)</label>
             <select
               value={filterDateFrom}
-              onChange={(e) => {
+              onChange={e => {
                 const newFromDate = e.target.value;
                 setFilterDateFrom(newFromDate);
                 // Clear "To" date if it's earlier than the new "From" date
@@ -143,36 +141,36 @@ const SearchMember: React.FC = () => {
               {sundayDates
                 .filter(date => !filterDateTo || date <= filterDateTo)
                 .map(date => (
-                  <option key={date} value={date}>{date}</option>
+                  <option key={date} value={date}>
+                    {date}
+                  </option>
                 ))}
             </select>
           </div>
-          
+
           <div className="form-group">
-            <label className="form-label">
-              {t('inputDate')} - To (Sunday only)
-            </label>
+            <label className="form-label">{t('inputDate')} - To (Sunday only)</label>
             <select
               value={filterDateTo}
-              onChange={(e) => setFilterDateTo(e.target.value)}
+              onChange={e => setFilterDateTo(e.target.value)}
               className="form-input form-select"
             >
               <option value="">All dates</option>
               {sundayDates
                 .filter(date => !filterDateFrom || date >= filterDateFrom)
                 .map(date => (
-                  <option key={date} value={date}>{date}</option>
+                  <option key={date} value={date}>
+                    {date}
+                  </option>
                 ))}
             </select>
           </div>
-          
+
           <div className="form-group">
-            <label className="form-label">
-              {t('registrationStatus')}
-            </label>
+            <label className="form-label">{t('registrationStatus')}</label>
             <select
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
+              onChange={e => setFilterStatus(e.target.value)}
               className="form-input form-select"
             >
               <option value="">All</option>
@@ -180,40 +178,40 @@ const SearchMember: React.FC = () => {
               <option value="Registration Complete">{t('registrationComplete')}</option>
             </select>
           </div>
-          
+
           <div className="form-group">
-            <label className="form-label">
-              Main Supporters (Multiple Selection)
-            </label>
-            <div style={{
-              maxHeight: '120px', 
-              overflowY: 'auto', 
-              border: '1px solid #d1d5db', 
-              borderRadius: '0.375rem', 
-              padding: '0.5rem'
-            }}>
+            <label className="form-label">Main Supporters (Multiple Selection)</label>
+            <div
+              style={{
+                maxHeight: '120px',
+                overflowY: 'auto',
+                border: '1px solid #d1d5db',
+                borderRadius: '0.375rem',
+                padding: '0.5rem',
+              }}
+            >
               {supporters.length === 0 ? (
-                <div style={{color: '#6b7280', fontSize: '0.875rem', padding: '0.5rem'}}>
+                <div style={{ color: '#6b7280', fontSize: '0.875rem', padding: '0.5rem' }}>
                   No supporters available
                 </div>
               ) : (
                 supporters.map(supporter => (
-                  <label 
+                  <label
                     key={supporter.id}
                     style={{
-                      display: 'flex', 
-                      alignItems: 'center', 
+                      display: 'flex',
+                      alignItems: 'center',
                       gap: '0.5rem',
                       padding: '0.25rem 0',
                       cursor: 'pointer',
-                      fontSize: '0.875rem'
+                      fontSize: '0.875rem',
                     }}
                   >
                     <input
                       type="checkbox"
                       checked={filterSupporterIds.includes(supporter.id)}
                       onChange={() => handleSupporterToggle(supporter.id)}
-                      style={{margin: 0}}
+                      style={{ margin: 0 }}
                     />
                     <span>{supporter.name}</span>
                   </label>
@@ -221,13 +219,13 @@ const SearchMember: React.FC = () => {
               )}
             </div>
             {filterSupporterIds.length > 0 && (
-              <div style={{fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem'}}>
+              <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
                 {filterSupporterIds.length} supporter(s) selected
               </div>
             )}
           </div>
-          
-          <div className="form-group" style={{display: 'flex', alignItems: 'end'}}>
+
+          <div className="form-group" style={{ display: 'flex', alignItems: 'end' }}>
             <button
               onClick={() => {
                 setSearchName('');
@@ -237,7 +235,7 @@ const SearchMember: React.FC = () => {
                 setFilterSupporterIds([]);
               }}
               className="btn btn-outline"
-              style={{width: '100%'}}
+              style={{ width: '100%' }}
             >
               Clear Filters
             </button>
@@ -250,59 +248,63 @@ const SearchMember: React.FC = () => {
         <h2 className="card-header">
           {t('familyName')} {!loading && `(${filteredFamilies.length})`}
         </h2>
-        
+
         {error && (
-          <div className="text-center" style={{padding: '2rem', color: '#dc2626', backgroundColor: '#fef2f2', borderRadius: '0.5rem', marginBottom: '1rem'}}>
-            <p style={{marginBottom: '0.5rem'}}>{error}</p>
-            <button 
-              className="btn btn-primary"
-              onClick={() => window.location.reload()}
-            >
+          <div
+            className="text-center"
+            style={{
+              padding: '2rem',
+              color: '#dc2626',
+              backgroundColor: '#fef2f2',
+              borderRadius: '0.5rem',
+              marginBottom: '1rem',
+            }}
+          >
+            <p style={{ marginBottom: '0.5rem' }}>{error}</p>
+            <button className="btn btn-primary" onClick={() => window.location.reload()}>
               Retry
             </button>
           </div>
         )}
-        
+
         {loading ? (
-          <div className="text-center" style={{padding: '2rem', color: '#6b7280'}}>
+          <div className="text-center" style={{ padding: '2rem', color: '#6b7280' }}>
             Loading families...
           </div>
         ) : (
           <div className="family-list">
-            {filteredFamilies.map((family) => (
-              <Link
-                key={family.id}
-                to={`/edit/${family.id}`}
-                className="family-item"
-              >
+            {filteredFamilies.map(family => (
+              <Link key={family.id} to={`/edit/${family.id}`} className="family-item">
                 <div className="family-item-content">
                   <div className="family-item-left">
-                    <div className="family-photo" style={{width: '4rem', height: '4rem'}}>
+                    <div className="family-photo" style={{ width: '4rem', height: '4rem' }}>
                       {family.family_picture_url ? (
-                        <img 
-                          src={family.family_picture_url} 
+                        <img
+                          src={family.family_picture_url}
                           alt={family.family_name}
-                          style={{width: '4rem', height: '4rem'}}
+                          style={{ width: '4rem', height: '4rem' }}
                         />
                       ) : (
                         <span className="family-photo-placeholder">No Photo</span>
                       )}
                     </div>
                     <div className="family-info">
-                      <h3 style={{fontSize: '1.125rem'}}>{family.family_name}</h3>
+                      <h3 style={{ fontSize: '1.125rem' }}>{family.family_name}</h3>
                       <p>
-                        {t(family.registration_status === 'Visitor' ? 'visitor' : 'registrationComplete')}
+                        {t(
+                          family.registration_status === 'Visitor'
+                            ? 'visitor'
+                            : 'registrationComplete'
+                        )}
                       </p>
-                      <p style={{marginTop: '0.25rem'}}>
-                        {formatDateOnly(family.input_date)}
-                      </p>
+                      <p style={{ marginTop: '0.25rem' }}>{formatDateOnly(family.input_date)}</p>
                       {family.main_supporter && (
-                        <p style={{marginTop: '0.25rem', fontSize: '0.875rem', color: '#059669'}}>
+                        <p style={{ marginTop: '0.25rem', fontSize: '0.875rem', color: '#059669' }}>
                           Main: {family.main_supporter.name}
                         </p>
                       )}
                       {family.sub_supporter && (
-                        <p style={{marginTop: '0.1rem', fontSize: '0.875rem', color: '#0891b2'}}>
+                        <p style={{ marginTop: '0.1rem', fontSize: '0.875rem', color: '#0891b2' }}>
                           Sub: {family.sub_supporter.name}
                         </p>
                       )}
@@ -312,24 +314,22 @@ const SearchMember: React.FC = () => {
                     <div className="family-date">
                       {getChildrenCount(family)} {t('numberOfChildren')}
                     </div>
-                    <div className="family-children">
-                      {family.members?.length || 0} members
-                    </div>
+                    <div className="family-children">{family.members?.length || 0} members</div>
                   </div>
                 </div>
               </Link>
             ))}
           </div>
         )}
-        
+
         {!loading && !error && filteredFamilies.length === 0 && families.length > 0 && (
-          <div className="text-center" style={{padding: '2rem', color: '#6b7280'}}>
+          <div className="text-center" style={{ padding: '2rem', color: '#6b7280' }}>
             No families found matching the search criteria.
           </div>
         )}
-        
+
         {!loading && !error && families.length === 0 && (
-          <div className="text-center" style={{padding: '2rem', color: '#6b7280'}}>
+          <div className="text-center" style={{ padding: '2rem', color: '#6b7280' }}>
             No families found in the database. Add some families first.
           </div>
         )}

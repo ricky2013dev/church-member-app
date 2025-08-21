@@ -244,16 +244,16 @@ app.post('/api/families', async (req, res) => {
   try {
     await client.query('BEGIN');
     
-    const { family_name, registration_status, input_date, notes, family_picture_url, members, main_supporter_id, sub_supporter_id } = req.body;
+    const { family_name, registration_status, input_date, notes, address, zipcode, family_picture_url, members, main_supporter_id, sub_supporter_id } = req.body;
     
     // Insert family
     const familyQuery = `
-      INSERT INTO families (family_name, registration_status, input_date, notes, family_picture_url, main_supporter_id, sub_supporter_id)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      INSERT INTO families (family_name, registration_status, input_date, notes, address, zipcode, family_picture_url, main_supporter_id, sub_supporter_id)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING *
     `;
     const familyResult = await client.query(familyQuery, [
-      family_name, registration_status, input_date, notes || '', family_picture_url || '', 
+      family_name, registration_status, input_date, notes || '', address || '', zipcode || '', family_picture_url || '', 
       main_supporter_id || null, sub_supporter_id || null
     ]);
     
@@ -307,18 +307,18 @@ app.post('/api/families', async (req, res) => {
 app.put('/api/families/:id', async (req, res) => {
   try {
     const familyId = parseInt(req.params.id);
-    const { family_name, registration_status, input_date, notes, family_picture_url, main_supporter_id, sub_supporter_id } = req.body;
+    const { family_name, registration_status, input_date, notes, address, zipcode, family_picture_url, main_supporter_id, sub_supporter_id } = req.body;
     
     const query = `
       UPDATE families 
-      SET family_name = $1, registration_status = $2, input_date = $3, notes = $4, family_picture_url = $5, 
-          main_supporter_id = $6, sub_supporter_id = $7, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $8
+      SET family_name = $1, registration_status = $2, input_date = $3, notes = $4, address = $5, zipcode = $6, 
+          family_picture_url = $7, main_supporter_id = $8, sub_supporter_id = $9, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $10
       RETURNING *
     `;
     
     const result = await pool.query(query, [
-      family_name, registration_status, input_date, notes, family_picture_url, 
+      family_name, registration_status, input_date, notes, address, zipcode, family_picture_url, 
       main_supporter_id || null, sub_supporter_id || null, familyId
     ]);
     

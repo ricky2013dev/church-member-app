@@ -28,5 +28,5 @@ CREATE TRIGGER update_group_pin_codes_updated_at
 INSERT INTO group_pin_codes (group_code, pin_code, group_name) VALUES
 ('NOR', '0000', 'Normal'),
 ('CAR', '0000', 'Care'),
-('ALL', '0000', 'All')
+('ADM', '0000', 'Admin')
 ON CONFLICT (group_code) DO NOTHING;

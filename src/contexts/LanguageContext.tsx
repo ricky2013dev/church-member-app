@@ -51,7 +51,7 @@ const translations = {
     add: '추가',
     upload: '업로드',
     familyPicture: '가족 사진',
-    individualPicture: '개인 사진'
+    individualPicture: '개인 사진',
   },
   en: {
     dashboard: 'Dashboard',
@@ -93,8 +93,8 @@ const translations = {
     add: 'Add',
     upload: 'Upload',
     familyPicture: 'Family Picture',
-    individualPicture: 'Individual Picture'
-  }
+    individualPicture: 'Individual Picture',
+  },
 };
 
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {

@@ -16,9 +16,9 @@ const Dashboard: React.FC = () => {
         // Fetch weekly stats and families in parallel
         const [statsData, familiesData] = await Promise.all([
           apiService.getWeeklyStats(),
-          apiService.getFamilies()
+          apiService.getFamilies(),
         ]);
-        
+
         setWeeklyStats(statsData);
         // Get most recent 2 families
         setRecentFamilies(familiesData.slice(0, 2));
@@ -44,7 +44,7 @@ const Dashboard: React.FC = () => {
             notes: '새가족 환영',
             created_at: '2024-08-18T10:00:00Z',
             updated_at: '2024-08-18T10:00:00Z',
-            members: []
+            members: [],
           },
           {
             id: 2,
@@ -55,8 +55,8 @@ const Dashboard: React.FC = () => {
             notes: '첫 방문',
             created_at: '2024-08-11T10:00:00Z',
             updated_at: '2024-08-11T10:00:00Z',
-            members: []
-          }
+            members: [],
+          },
         ];
 
         setWeeklyStats(mockWeeklyStats);
@@ -70,7 +70,7 @@ const Dashboard: React.FC = () => {
   return (
     <div className="container">
       <h1 className="page-title">{t('dashboard')}</h1>
-      
+
       {/* Weekly Registration Stats */}
       <div className="card">
         <h2 className="card-header">{t('weeklyRegistrations')}</h2>
@@ -89,20 +89,13 @@ const Dashboard: React.FC = () => {
       <div className="card">
         <h2 className="card-header">{t('recentFamilies')}</h2>
         <div className="family-list">
-          {recentFamilies.map((family) => (
-            <Link
-            key={family.id}
-            to={`/edit/${family.id}`}
-            className="family-item"
-            >
+          {recentFamilies.map(family => (
+            <Link key={family.id} to={`/edit/${family.id}`} className="family-item">
               <div className="family-item-content">
                 <div className="family-item-left">
                   <div className="family-photo">
                     {family.family_picture_url ? (
-                      <img 
-                        src={family.family_picture_url} 
-                        alt={family.family_name}
-                      />
+                      <img src={family.family_picture_url} alt={family.family_name} />
                     ) : (
                       <span className="family-photo-placeholder">No Photo</span>
                     )}
@@ -110,16 +103,19 @@ const Dashboard: React.FC = () => {
                   <div className="family-info">
                     <h3>{family.family_name}</h3>
                     <p>
-                      {t(family.registration_status === 'Visitor' ? 'visitor' : 'registrationComplete')}
+                      {t(
+                        family.registration_status === 'Visitor'
+                          ? 'visitor'
+                          : 'registrationComplete'
+                      )}
                     </p>
                   </div>
                 </div>
                 <div className="family-item-right">
-                  <div className="family-date">
-                    {formatDateOnly(family.input_date)}
-                  </div>
+                  <div className="family-date">{formatDateOnly(family.input_date)}</div>
                   <div className="family-children">
-                    {family.members?.filter(m => m.relationship === 'child').length || 0} {t('numberOfChildren')}
+                    {family.members?.filter(m => m.relationship === 'child').length || 0}{' '}
+                    {t('numberOfChildren')}
                   </div>
                 </div>
               </div>

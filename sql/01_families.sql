@@ -8,6 +8,8 @@ CREATE TABLE IF NOT EXISTS families (
     registration_status VARCHAR(50) NOT NULL DEFAULT 'Visitor' CHECK (registration_status IN ('Visitor', 'Registration Complete')),
     input_date DATE NOT NULL,
     notes TEXT,
+    address TEXT,
+    zipcode VARCHAR(10),
     main_supporter_id INTEGER,
     sub_supporter_id INTEGER,
     created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,

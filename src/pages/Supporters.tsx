@@ -21,7 +21,7 @@ const Supporters: React.FC = () => {
     gender: 'male' as 'male' | 'female',
     status: 'on' as 'on' | 'off',
     pin_code: '',
-    display_sort: 0
+    display_sort: 0,
   });
   const [uploadingPicture, setUploadingPicture] = useState(false);
 
@@ -35,7 +35,8 @@ const Supporters: React.FC = () => {
       setLoading(true);
       setError(null);
       const data = await apiService.getSupporters();
-      setSupporters(data);
+      const sortedData = data.sort((a, b) => a.display_sort - b.display_sort);
+      setSupporters(sortedData);
     } catch (err) {
       console.error('Error fetching supporters:', err);
       setError('Failed to load supporters. Please check if the server is running.');
@@ -56,7 +57,7 @@ const Supporters: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.name.trim()) {
       setError('Name is required');
       return;
@@ -74,13 +75,13 @@ const Supporters: React.FC = () => {
 
     try {
       setError(null);
-      
+
       if (editingSupporter) {
         await apiService.updateSupporter(editingSupporter.id, formData);
       } else {
         await apiService.createSupporter(formData);
       }
-      
+
       await fetchSupporters();
       resetForm();
     } catch (err) {
@@ -116,21 +117,23 @@ const Supporters: React.FC = () => {
       await fetchSupporters();
     } catch (err) {
       console.error('Error deleting supporter:', err);
-      setError(`Failed to delete supporter: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      setError(
+        `Failed to delete supporter: ${err instanceof Error ? err.message : 'Unknown error'}`
+      );
     }
   };
 
   const resetForm = () => {
-    setFormData({ 
-      name: '', 
-      group_code: groupPinCodes.length > 0 ? groupPinCodes[0].group_code : '', 
-      phone_number: '', 
-      email: '', 
-      profile_picture_url: '', 
-      gender: 'male', 
+    setFormData({
+      name: '',
+      group_code: groupPinCodes.length > 0 ? groupPinCodes[0].group_code : '',
+      phone_number: '',
+      email: '',
+      profile_picture_url: '',
+      gender: 'male',
       status: 'on',
       pin_code: '',
-      display_sort: 0
+      display_sort: 0,
     });
     setEditingSupporter(null);
     setIsAddingSupporter(false);
@@ -149,7 +152,9 @@ const Supporters: React.FC = () => {
       await fetchGroupPinCodes();
     } catch (err) {
       console.error('Error updating group pin code:', err);
-      setError(`Failed to update group pin code: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      setError(
+        `Failed to update group pin code: ${err instanceof Error ? err.message : 'Unknown error'}`
+      );
     }
   };
 
@@ -166,14 +171,13 @@ const Supporters: React.FC = () => {
     try {
       setUploadingPicture(true);
       setError(null);
-      
+
       const uploadResult = await apiService.uploadFile(file, 'member');
-      
+
       setFormData(prev => ({
         ...prev,
-        profile_picture_url: uploadResult.url
+        profile_picture_url: uploadResult.url,
       }));
-      
     } catch (err) {
       console.error('Error uploading picture:', err);
       setError(`Failed to upload picture: ${err instanceof Error ? err.message : 'Unknown error'}`);
@@ -182,11 +186,10 @@ const Supporters: React.FC = () => {
     }
   };
 
-
   // Filter supporters based on user's group permissions
   const filteredSupporters = supporters.filter(supporter => {
     // Show all supporters if current user is ALL
-    if (user?.group_code === 'ALL') {
+    if (user?.group_code === 'ADM') {
       return true;
     }
     // Show NOR supporters only if current user is NOR
@@ -196,13 +199,16 @@ const Supporters: React.FC = () => {
     return true;
   });
 
-  const groupedSupporters = filteredSupporters.reduce((acc, supporter) => {
-    if (!acc[supporter.group_code]) {
-      acc[supporter.group_code] = [];
-    }
-    acc[supporter.group_code].push(supporter);
-    return acc;
-  }, {} as Record<string, Supporter[]>);
+  const groupedSupporters = filteredSupporters.reduce(
+    (acc, supporter) => {
+      if (!acc[supporter.group_code]) {
+        acc[supporter.group_code] = [];
+      }
+      acc[supporter.group_code].push(supporter);
+      return acc;
+    },
+    {} as Record<string, Supporter[]>
+  );
 
   // Sort each group by status (on first, off later) then by display_sort
   Object.keys(groupedSupporters).forEach(groupCode => {
@@ -218,9 +224,16 @@ const Supporters: React.FC = () => {
 
   return (
     <div className="container">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0rem' }}>
-        <div >
-          {user?.group_code === 'ALL' && (
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '0rem',
+        }}
+      >
+        <div className=" text-right p-0 mb-1 ">
+          {user?.group_code === 'ADM' && (
             <button
               onClick={() => setIsManagingGroupCodes(!isManagingGroupCodes)}
               className="btn p-0 btn-outline"
@@ -230,44 +243,47 @@ const Supporters: React.FC = () => {
           )}
           <button
             onClick={() => setIsAddingSupporter(true)}
-            className="btn btn-primary p-0 ml-1 "
+            className="btn btn-primary p-0 m-0 "
             disabled={isAddingSupporter}
           >
-            + Supp 
+            + Supp
           </button>
         </div>
       </div>
 
       {error && (
-        <div className="card" style={{backgroundColor: '#fef2f2', borderColor: '#fecaca', marginBottom: '1rem'}}>
-          <div style={{color: '#dc2626', fontSize: '0.875rem'}}>
-            {error}
-          </div>
+        <div
+          className="card"
+          style={{ backgroundColor: '#fef2f2', borderColor: '#fecaca', marginBottom: '1rem' }}
+        >
+          <div style={{ color: '#dc2626', fontSize: '0.875rem' }}>{error}</div>
         </div>
       )}
 
       {/* Group Pin Code Management (CAR supporters only) */}
-      {user?.group_code === 'ALL' && isManagingGroupCodes && (
-        <div className="card" style={{marginBottom: '2rem'}}>
+      {user?.group_code === 'ADM' && isManagingGroupCodes && (
+        <div className="card" style={{ marginBottom: '2rem' }}>
           <h2 className="card-header">Group Pin Code Management</h2>
-          <div style={{padding: '1rem'}}>
-            <p style={{marginBottom: '1rem', fontSize: '0.875rem', color: '#6b7280'}}>
-              Only CAR supporters can modify group pin codes. Other supporters will see these as read-only.
+          <div style={{ padding: '1rem' }}>
+            <p style={{ marginBottom: '1rem', fontSize: '0.875rem', color: '#6b7280' }}>
+              Only CAR supporters can modify group pin codes. Other supporters will see these as
+              read-only.
             </p>
-            
+
             {groupPinCodes.map(groupCode => (
-              <div key={groupCode.group_code} style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '1rem',
-                padding: '1rem',
-                backgroundColor: '#f9fafb',
-                borderRadius: '0.5rem',
-                marginBottom: '1rem'
-              }}>
-                <div style={{ minWidth: '80px', fontWeight: '500' }}>
-                  {groupCode.group_name}:
-                </div>
+              <div
+                key={groupCode.group_code}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '1rem',
+                  padding: '1rem',
+                  backgroundColor: '#f9fafb',
+                  borderRadius: '0.5rem',
+                  marginBottom: '1rem',
+                }}
+              >
+                <div style={{ minWidth: '80px', fontWeight: '100' }}>{groupCode.group_name}:</div>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -281,9 +297,9 @@ const Supporters: React.FC = () => {
                     textAlign: 'center',
                     letterSpacing: '0.25em',
                     fontSize: '1rem',
-                    width: '100px'
+                    width: '100px',
                   }}
-                  onBlur={(e) => {
+                  onBlur={e => {
                     const newValue = e.target.value;
                     if (newValue !== groupCode.pin_code && newValue.length === 4) {
                       handleUpdateGroupPinCode(groupCode.group_code, newValue);
@@ -301,11 +317,11 @@ const Supporters: React.FC = () => {
 
       {/* Add/Edit Form */}
       {isAddingSupporter && (
-        <div className="card" style={{marginBottom: '2rem'}}>
-          <h2 className="card-header">
+        <div className="card" style={{ marginBottom: '1rem' }}>
+          <h2 className="card-header p-0 m-0">
             {editingSupporter ? 'Edit Supporter' : 'Add New Supporter'}
           </h2>
-          
+
           <form onSubmit={handleSubmit}>
             <div className="form-grid">
               <div className="form-group">
@@ -313,35 +329,37 @@ const Supporters: React.FC = () => {
                 <input
                   type="text"
                   value={formData.name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                  onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
                   className="form-input"
                   placeholder="Enter supporter name"
                   required
                 />
               </div>
-              
-              { user?.group_code !== 'NOR'  &&  (<div className="form-group">
-                <label className="form-label">Group Code *</label>
-                <select
-                  value={formData.group_code}
-                  onChange={(e) => setFormData(prev => ({ ...prev, group_code: e.target.value }))}
-                  className="form-input form-select"
-                  required
-                >
-                  {groupPinCodes.map(group => (
-                    <option key={group.group_code} value={group.group_code}>
-                      {group.group_code} - {group.group_name}
-                    </option>
-                  ))}
-                </select>
-              </div>)}
+
+              {user?.group_code !== 'NOR' && (
+                <div className="form-group">
+                  <label className="form-label">Group Code *</label>
+                  <select
+                    value={formData.group_code}
+                    onChange={e => setFormData(prev => ({ ...prev, group_code: e.target.value }))}
+                    className="form-input form-select"
+                    required
+                  >
+                    {groupPinCodes.map(group => (
+                      <option key={group.group_code} value={group.group_code}>
+                        {group.group_code} - {group.group_name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               <div className="form-group">
                 <label className="form-label">Phone Number</label>
                 <input
                   type="tel"
                   value={formData.phone_number}
-                  onChange={(e) => setFormData(prev => ({ ...prev, phone_number: e.target.value }))}
+                  onChange={e => setFormData(prev => ({ ...prev, phone_number: e.target.value }))}
                   className="form-input"
                   placeholder="010-1234-5678"
                 />
@@ -352,7 +370,7 @@ const Supporters: React.FC = () => {
                 <input
                   type="email"
                   value={formData.email}
-                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                  onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))}
                   className="form-input"
                   placeholder="supporter@example.com"
                 />
@@ -362,7 +380,9 @@ const Supporters: React.FC = () => {
                 <label className="form-label">Gender *</label>
                 <select
                   value={formData.gender}
-                  onChange={(e) => setFormData(prev => ({ ...prev, gender: e.target.value as 'male' | 'female' }))}
+                  onChange={e =>
+                    setFormData(prev => ({ ...prev, gender: e.target.value as 'male' | 'female' }))
+                  }
                   className="form-input form-select"
                   required
                 >
@@ -375,7 +395,9 @@ const Supporters: React.FC = () => {
                 <label className="form-label">Status *</label>
                 <select
                   value={formData.status}
-                  onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as 'on' | 'off' }))}
+                  onChange={e =>
+                    setFormData(prev => ({ ...prev, status: e.target.value as 'on' | 'off' }))
+                  }
                   className="form-input form-select"
                   required
                 >
@@ -389,7 +411,9 @@ const Supporters: React.FC = () => {
                 <input
                   type="number"
                   value={formData.display_sort}
-                  onChange={(e) => setFormData(prev => ({ ...prev, display_sort: parseInt(e.target.value) || 0 }))}
+                  onChange={e =>
+                    setFormData(prev => ({ ...prev, display_sort: parseInt(e.target.value) || 0 }))
+                  }
                   className="form-input"
                   placeholder="Sort order (e.g., 1, 2, 3...)"
                   min="0"
@@ -404,7 +428,7 @@ const Supporters: React.FC = () => {
                   inputMode="numeric"
                   pattern="[0-9]*"
                   value={formData.pin_code}
-                  onChange={(e) => handlePinCodeChange(e.target.value)}
+                  onChange={e => handlePinCodeChange(e.target.value)}
                   className="form-input"
                   placeholder="4-digit pin code"
                   maxLength={4}
@@ -412,10 +436,10 @@ const Supporters: React.FC = () => {
                   style={{
                     textAlign: 'center',
                     letterSpacing: '0.25em',
-                    fontSize: '1.125rem'
+                    fontSize: '1.125rem',
                   }}
                 />
-                <div style={{fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem'}}>
+                <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
                   Personal 4-digit pin code for login
                 </div>
               </div>
@@ -430,12 +454,12 @@ const Supporters: React.FC = () => {
                   className="form-input"
                 />
                 {uploadingPicture && (
-                  <div style={{fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem'}}>
+                  <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
                     Uploading picture...
                   </div>
                 )}
                 {formData.profile_picture_url && (
-                  <div style={{marginTop: '0.5rem'}}>
+                  <div style={{ marginTop: '0.5rem' }}>
                     <img
                       src={formData.profile_picture_url}
                       alt="Profile picture"
@@ -444,29 +468,22 @@ const Supporters: React.FC = () => {
                         height: '80px',
                         objectFit: 'cover',
                         borderRadius: '50%',
-                        border: '2px solid #d1d5db'
+                        border: '2px solid #d1d5db',
                       }}
                     />
-                    <div style={{fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem'}}>
+                    <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
                       Picture uploaded successfully
                     </div>
                   </div>
                 )}
               </div>
             </div>
-            
+
             <div className="actions">
-              <button
-                type="button"
-                onClick={resetForm}
-                className="btn btn-secondary"
-              >
+              <button type="button" onClick={resetForm} className="btn btn-secondary">
                 Cancel
               </button>
-              <button
-                type="submit"
-                className="btn btn-primary"
-              >
+              <button type="submit" className="btn btn-primary">
                 {editingSupporter ? 'Update Supporter' : 'Add Supporter'}
               </button>
             </div>
@@ -476,129 +493,155 @@ const Supporters: React.FC = () => {
 
       {/* Supporters List */}
       {loading ? (
-        <div className="text-center" style={{padding: '2rem', color: '#6b7280'}}>
+        <div className="text-center" style={{ padding: '2rem', color: '#6b7280' }}>
           Loading supporters...
         </div>
-      ) :  (
-        <div>
-          {Object.keys(groupedSupporters).sort().map(groupCode => !(user?.group_code === 'NOR' && groupCode === 'ALL') && (
-            <div key={groupCode} className="card" style={{marginBottom: '1.5rem'}}>
-              <h2 className="card-header">
-                {groupPinCodes.find(g => g.group_code === groupCode)?.group_name || groupCode} ({groupedSupporters[groupCode].length})
-              </h2>
-              
-              {groupedSupporters[groupCode].length === 0 ? (
-                <div className="text-center" style={{padding: '1rem', color: '#6b7280'}}>
-                  No supporters in this group.
-                </div>
-              ) : (
-                <div style={{display: 'grid', gap: '0.5rem'}}>
-                  {groupedSupporters[groupCode].map(supporter => (
-                    <div
-                      key={supporter.id}
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        padding: '1rem',
-                        backgroundColor: supporter.status === 'on' ? '#f0fdf4' : '#fef2f2',
-                        border: `1px solid ${supporter.status === 'on' ? '#bbf7d0' : '#fecaca'}`,
-                        borderRadius: '0.5rem',
-                        opacity: supporter.status === 'off' ? 0.7 : 1
-                      }}
-                    >
-                      <div style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
-                        <div style={{position: 'relative'}}>
-                          {supporter.profile_picture_url ? (
-                            <img
-                              src={supporter.profile_picture_url}
-                              alt={supporter.name}
-                              style={{
-                                width: '60px',
-                                height: '60px',
-                                objectFit: 'cover',
-                                borderRadius: '50%',
-                                border: '2px solid #d1d5db'
-                              }}
-                            />
-                          ) : (
-                            <div style={{
-                              width: '60px',
-                              height: '60px',
-                              backgroundColor: '#e5e7eb',
-                              borderRadius: '50%',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              fontSize: '1.5rem',
-                              color: '#6b7280'
-                            }}>
-                              {supporter.gender === 'male' ? '👨' : '👩'}
-                            </div>
-                          )}
-                          <div style={{
-                            position: 'absolute',
-                            bottom: '-2px',
-                            right: '-2px',
-                            width: '16px',
-                            height: '16px',
-                            backgroundColor: supporter.status === 'on' ? '#10b981' : '#ef4444',
-                            borderRadius: '50%',
-                            border: '2px solid white'
-                          }} />
-                        </div>
-                        
-                        <div>
-                          <h4 style={{margin: 0, fontSize: '1.125rem', fontWeight: 600}}>
-                            {supporter.name}
-                            <span style={{
-                              marginLeft: '0.5rem',
-                              fontSize: '0.75rem',
-                              padding: '0.125rem 0.5rem',
-                              backgroundColor: supporter.status === 'on' ? '#10b981' : '#ef4444',
-                              color: 'white',
-                              borderRadius: '1rem',
-                              textTransform: 'uppercase'
-                            }}>
-                              {supporter.status}
-                            </span>
-                          </h4>
+      ) : (
+        <div className="group-name">
+          {Object.keys(groupedSupporters)
+            .sort()
+            .map(
+              groupCode =>
+                !(user?.group_code === 'NOR' && groupCode === 'ADM') && (
+                  <div
+                    key={groupCode}
+                    className="card"
+                    style={{ marginBottom: '0rem', paddingTop: '0.2rem', paddingBottom: '0.2rem' }}
+                  >
+                    <h3 className="card-header">
+                      {groupPinCodes.find(g => g.group_code === groupCode)?.group_name || groupCode}{' '}
+                      ({groupedSupporters[groupCode].length})
+                    </h3>
 
-                          <p style={{margin: '0.125rem 0', fontSize: '0.75rem', color: '#9ca3af'}}>
-                            {supporter.gender === 'male' ? '♂️ Male' : '♀️ Female'}
-                          </p>
-                        </div>
+                    {groupedSupporters[groupCode].length === 0 ? (
+                      <div className="text-center" style={{ padding: '1rem', color: '#6b7280' }}>
+                        No supporters in this group.
                       </div>
-                      
-                      {( user?.group_code !== 'NOR' || user?.id === supporter.id ) && ( 
-                        <div style={{display: 'flex', gap: '0.5rem'}}>
-                        <button
-                          onClick={() => handleEdit(supporter)}
-                          className="btn btn-outline"
-                          style={{fontSize: '0.75rem', padding: '0.25rem 0.5rem'}}
-                        >
-                          E
-                        </button>
+                    ) : (
+                      <div style={{ display: 'grid', gap: '0.5rem' }}>
+                        {groupedSupporters[groupCode].map(supporter => (
+                          <div
+                            key={supporter.id}
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              padding: '1rem',
+                              backgroundColor: supporter.status === 'on' ? '#f0fdf4' : '#fef2f2',
+                              border: `1px solid ${supporter.status === 'on' ? '#bbf7d0' : '#fecaca'}`,
+                              borderRadius: '0.5rem',
+                              opacity: supporter.status === 'off' ? 0.7 : 1,
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                              <div style={{ position: 'relative' }}>
+                                {supporter.profile_picture_url ? (
+                                  <img
+                                    src={supporter.profile_picture_url}
+                                    alt={supporter.name}
+                                    style={{
+                                      width: '60px',
+                                      height: '60px',
+                                      objectFit: 'cover',
+                                      borderRadius: '50%',
+                                      border: '2px solid #d1d5db',
+                                    }}
+                                  />
+                                ) : (
+                                  <div
+                                    style={{
+                                      width: '60px',
+                                      height: '60px',
+                                      backgroundColor: '#e5e7eb',
+                                      borderRadius: '50%',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      fontSize: '1.5rem',
+                                      color: '#6b7280',
+                                    }}
+                                  >
+                                    {supporter.gender === 'male' ? '👨' : '👩'}
+                                  </div>
+                                )}
+                                <div
+                                  style={{
+                                    position: 'absolute',
+                                    bottom: '-2px',
+                                    right: '-2px',
+                                    width: '16px',
+                                    height: '16px',
+                                    backgroundColor:
+                                      supporter.status === 'on' ? '#10b981' : '#ef4444',
+                                    borderRadius: '50%',
+                                    border: '2px solid white',
+                                  }}
+                                />
+                              </div>
 
-                        { user?.group_code !== 'NOR'  && (<button
-                          onClick={() => handleDelete(supporter)}
-                          className="btn btn-danger"
-                          style={{fontSize: '0.75rem', padding: '0.25rem 0.5rem'}}
-                        >
-                          X
-                        </button>)}
-                        
-                      </div>)}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-          
+                              <div>
+                                <h4 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 600 }}>
+                                  {supporter.name}
+                                  <span
+                                    style={{
+                                      marginLeft: '0.5rem',
+                                      fontSize: '0.75rem',
+                                      padding: '0.125rem 0.5rem',
+                                      backgroundColor:
+                                        supporter.status === 'on' ? '#10b981' : '#ef4444',
+                                      color: 'white',
+                                      borderRadius: '1rem',
+                                      textTransform: 'uppercase',
+                                    }}
+                                  >
+                                    {supporter.status}
+                                  </span>
+                                </h4>
+
+                                <p
+                                  style={{
+                                    margin: '0.125rem 0',
+                                    fontSize: '0.75rem',
+                                    color: '#9ca3af',
+                                  }}
+                                >
+                                  {supporter.gender === 'male' ? '♂️ Male' : '♀️ Female'}
+                                </p>
+                              </div>
+                            </div>
+
+                            {(user?.group_code !== 'NOR' || user?.id === supporter.id) && (
+                              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                <button
+                                  onClick={() => handleEdit(supporter)}
+                                  className="btn btn-outline"
+                                  style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+                                >
+                                  E
+                                </button>
+
+                                {user?.group_code !== 'NOR' && (
+                                  <button
+                                    onClick={() => handleDelete(supporter)}
+                                    className="btn btn-danger"
+                                    style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+                                  >
+                                    X
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )
+            )}
+
           {supporters.length === 0 && !loading && (
-            <div className="text-center" style={{padding: '3rem', color: '#6b7280'}}>
-              <h3 style={{marginBottom: '1rem'}}>No supporters found</h3>
+            <div className="text-center" style={{ padding: '3rem', color: '#6b7280' }}>
+              <h3 style={{ marginBottom: '1rem' }}>No supporters found</h3>
               <p>Click "Add New Supporter" to create your first supporter.</p>
             </div>
           )}

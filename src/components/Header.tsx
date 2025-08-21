@@ -24,27 +24,16 @@ const Header: React.FC = () => {
       <div className="header-container">
         <div className="header-main">
           <div className="header-left">
-            <h1 className="header-title">
-              {import.meta.env.VITE_APP_TITLE || 'New Member'}
-            </h1>
-            
+            <h1 className="header-title">{import.meta.env.VITE_APP_TITLE || 'New Member'}</h1>
+
             <nav className="header-nav desktop-nav">
-              <Link
-                to="/"
-                className={`nav-link ${isActive('/') ? 'active' : ''}`}
-              >
+              <Link to="/" className={`nav-link ${isActive('/') ? 'active' : ''}`}>
                 {t('dashboard')}
               </Link>
-              <Link
-                to="/search"
-                className={`nav-link ${isActive('/search') ? 'active' : ''}`}
-              >
+              <Link to="/search" className={`nav-link ${isActive('/search') ? 'active' : ''}`}>
                 {t('searchMember')}
               </Link>
-              <Link
-                to="/add"
-                className={`nav-link ${isActive('/add') ? 'active' : ''}`}
-              >
+              <Link to="/add" className={`nav-link ${isActive('/add') ? 'active' : ''}`}>
                 {t('addNew')}
               </Link>
               <Link
@@ -57,7 +46,10 @@ const Header: React.FC = () => {
           </div>
 
           <div className="header-right">
-            <div className="user-info" style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginRight: '1rem' }}>
+            <div
+              className="user-info"
+              style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginRight: '1rem' }}
+            >
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 {user?.profile_picture_url ? (
                   <img
@@ -67,20 +59,22 @@ const Header: React.FC = () => {
                       width: '32px',
                       height: '32px',
                       borderRadius: '50%',
-                      objectFit: 'cover'
+                      objectFit: 'cover',
                     }}
                   />
                 ) : (
-                  <div style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '50%',
-                    backgroundColor: '#e5e7eb',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '1rem'
-                  }}>
+                  <div
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '50%',
+                      backgroundColor: '#e5e7eb',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '1rem',
+                    }}
+                  >
                     {user?.gender === 'male' ? '👨' : '👩'}
                   </div>
                 )}
@@ -89,7 +83,7 @@ const Header: React.FC = () => {
                   <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>{user?.group_code}</span>
                 </div>
               </div>
-              
+
               <button
                 onClick={logout}
                 style={{
@@ -99,7 +93,7 @@ const Header: React.FC = () => {
                   color: 'white',
                   border: 'none',
                   borderRadius: '0.375rem',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
                 }}
               >
                 Logout
@@ -121,7 +115,7 @@ const Header: React.FC = () => {
               </button>
             </div>
 
-            <button 
+            <button
               className="mobile-menu-btn"
               onClick={toggleMobileMenu}
               aria-label="Toggle navigation menu"

@@ -10,14 +10,14 @@
 export const getSundayDates = (weeksBack: number = 52): string[] => {
   const dates = [];
   const today = new Date();
-  
-  for (let i = -weeksBack; i < 1; i++) { 
+
+  for (let i = -weeksBack; i < 1; i++) {
     const date = new Date(today);
-    date.setDate(today.getDate() + (i * 7));
+    date.setDate(today.getDate() + i * 7);
     const sunday = new Date(date.setDate(date.getDate() - date.getDay()));
     dates.push(sunday.toISOString().split('T')[0]);
   }
-  
+
   return dates.sort().reverse();
 };
 

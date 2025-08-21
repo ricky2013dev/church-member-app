@@ -54,10 +54,13 @@ class ApiService {
     });
   }
 
-  async updateFamily(id: number, family: Partial<Family> & {
-    main_supporter_id?: number | null;
-    sub_supporter_id?: number | null;
-  }): Promise<Family> {
+  async updateFamily(
+    id: number,
+    family: Partial<Family> & {
+      main_supporter_id?: number | null;
+      sub_supporter_id?: number | null;
+    }
+  ): Promise<Family> {
     return this.fetchWithAuth(`/families/${id}`, {
       method: 'PUT',
       body: JSON.stringify(family),
@@ -92,7 +95,9 @@ class ApiService {
   }
 
   // Statistics
-  async getWeeklyStats(): Promise<Array<{ week: string; new_families: number; total_families: number }>> {
+  async getWeeklyStats(): Promise<
+    Array<{ week: string; new_families: number; total_families: number }>
+  > {
     return this.fetchWithAuth('/stats/weekly');
   }
 
@@ -119,7 +124,7 @@ class ApiService {
     const params = new URLSearchParams();
     if (groupCode) params.append('group_code', groupCode);
     if (status) params.append('status', status);
-    
+
     const url = params.toString() ? `/supporters?${params.toString()}` : '/supporters';
     return this.fetchWithAuth(url);
   }
@@ -145,17 +150,20 @@ class ApiService {
     });
   }
 
-  async updateSupporter(id: number, supporter: {
-    name: string;
-    group_code: string;
-    phone_number?: string;
-    email?: string;
-    profile_picture_url?: string;
-    gender: 'male' | 'female';
-    status: 'on' | 'off';
-    pin_code: string;
-    display_sort: number;
-  }): Promise<Supporter> {
+  async updateSupporter(
+    id: number,
+    supporter: {
+      name: string;
+      group_code: string;
+      phone_number?: string;
+      email?: string;
+      profile_picture_url?: string;
+      gender: 'male' | 'female';
+      status: 'on' | 'off';
+      pin_code: string;
+      display_sort: number;
+    }
+  ): Promise<Supporter> {
     return this.fetchWithAuth(`/supporters/${id}`, {
       method: 'PUT',
       body: JSON.stringify(supporter),
@@ -169,7 +177,11 @@ class ApiService {
   }
 
   // Authentication
-  async login(supporter_id: number, pin_code: string, group_pin_code: string): Promise<{
+  async login(
+    supporter_id: number,
+    pin_code: string,
+    group_pin_code: string
+  ): Promise<{
     success: boolean;
     supporter: {
       id: number;

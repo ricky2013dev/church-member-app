@@ -5,6 +5,8 @@ export interface Family {
   registration_status: 'Visitor' | 'Registration Complete';
   input_date: string;
   notes?: string;
+  address?: string;
+  zipcode?: string;
   main_supporter_id?: number;
   sub_supporter_id?: number;
   created_at: string;

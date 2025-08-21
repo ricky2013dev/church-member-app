@@ -1,0 +1,18 @@
+# Dependencies
+node_modules
+server/node_modules
+
+# Build outputs
+dist
+build
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Generated files
+coverage
+
+# Logs
+*.log

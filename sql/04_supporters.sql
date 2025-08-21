@@ -24,7 +24,7 @@ CREATE INDEX IF NOT EXISTS idx_supporters_status_group ON supporters(status, gro
 -- Insert sample supporters data
 INSERT INTO supporters (name, group_code, gender, status, pin_code, display_sort) VALUES
 ('김지혜', 'NOR', 'female', 'on', '1234', 1),
-('김어드', 'ALL', 'male', 'on', '4321', 99),
+('김어드', 'ADM', 'male', 'on', '4321', 99),
 ('이선희', 'NOR', 'female', 'on', '1234', 2),
 ('최승환', 'NOR', 'male', 'on', '1234', 3),
 ('김향숙', 'NOR', 'female', 'on', '1234', 7)
