@@ -5,7 +5,7 @@ import { apiService } from '../services/api';
 import type { Event, EventResponse } from '../types';
 import './EventResponse.css';
 
-const EventResponse: React.FC = () => {
+const EventResponsePage: React.FC = () => {
   // const { t } = useLanguage();
   const { user } = useAuth();
   const [events, setEvents] = useState<Event[]>([]);
@@ -438,4 +438,4 @@ const EventResponse: React.FC = () => {
   );
 };
 
-export default EventResponse;
+export default EventResponsePage;
