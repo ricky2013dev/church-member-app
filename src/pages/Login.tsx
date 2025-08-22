@@ -183,7 +183,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 <option value="">Select your account...</option>
                 {supporters.map(supporter => (
                   <option key={supporter.id} value={supporter.id}>
-                    {supporter.name} ({supporter.group_code})
+                    {supporter.name} 
                   </option>
                 ))}
               </select>
@@ -200,7 +200,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 marginBottom: '0.5rem',
               }}
             >
-              Personal Pin Code
+              Personal Code
             </label>
             <input
               type="text"
@@ -233,7 +233,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 marginBottom: '0.5rem',
               }}
             >
-              Group Pin Code
+              Team Code
             </label>
             <input
               type="text"
