@@ -79,4 +79,34 @@ export interface MonthlyStats {
   total_families: number;
 }
 
+export interface Event {
+  id: number;
+  event_name: string;
+  event_date: string;
+  created_by?: number;
+  created_at: string;
+  updated_at: string;
+  creator?: Supporter;
+  responses?: EventResponse[];
+  summary?: EventSummary;
+  user_response?: 'Join' | 'Not Able' | 'Not Decide' | null;
+}
+
+export interface EventResponse {
+  id: number;
+  event_id: number;
+  supporter_id: number;
+  attendance_status: 'Join' | 'Not Able' | 'Not Decide';
+  created_at: string;
+  updated_at: string;
+  supporter?: Supporter;
+}
+
+export interface EventSummary {
+  total_join: number;
+  total_not_able: number;
+  total_not_decide: number;
+  total_responses: number;
+}
+
 export type Language = 'ko' | 'en';

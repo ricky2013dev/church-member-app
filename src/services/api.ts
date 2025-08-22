@@ -1,6 +1,14 @@
-import type { Family, Member, Supporter, GroupPinCode } from '../types';
+import type {
+  Family,
+  Member,
+  Supporter,
+  GroupPinCode,
+  Event,
+  EventResponse,
+} from '../types';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 class ApiService {
   private async fetchWithAuth(url: string, options: RequestInit = {}) {
@@ -78,7 +86,9 @@ class ApiService {
   }
 
   // Member operations
-  async createMember(member: Omit<Member, 'id' | 'created_at' | 'updated_at'>): Promise<Member> {
+  async createMember(
+    member: Omit<Member, 'id' | 'created_at' | 'updated_at'>
+  ): Promise<Member> {
     return this.fetchWithAuth('/members', {
       method: 'POST',
       body: JSON.stringify(member),
@@ -106,7 +116,10 @@ class ApiService {
   }
 
   // File upload
-  async uploadFile(file: File, type: 'family' | 'member'): Promise<{ url: string }> {
+  async uploadFile(
+    file: File,
+    type: 'family' | 'member'
+  ): Promise<{ url: string }> {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('type', type);
@@ -117,19 +130,26 @@ class ApiService {
     });
 
     if (!response.ok) {
-      throw new Error(`Upload Error: ${response.status} ${response.statusText}`);
+      throw new Error(
+        `Upload Error: ${response.status} ${response.statusText}`
+      );
     }
 
     return response.json();
   }
 
   // Supporter operations
-  async getSupporters(groupCode?: string, status?: 'on' | 'off'): Promise<Supporter[]> {
+  async getSupporters(
+    groupCode?: string,
+    status?: 'on' | 'off'
+  ): Promise<Supporter[]> {
     const params = new URLSearchParams();
     if (groupCode) params.append('group_code', groupCode);
     if (status) params.append('status', status);
 
-    const url = params.toString() ? `/supporters?${params.toString()}` : '/supporters';
+    const url = params.toString()
+      ? `/supporters?${params.toString()}`
+      : '/supporters';
     return this.fetchWithAuth(url);
   }
 
@@ -208,10 +228,81 @@ class ApiService {
     return this.fetchWithAuth('/group-pin-codes');
   }
 
-  async updateGroupPinCode(group_code: string, pin_code: string): Promise<GroupPinCode> {
+  async updateGroupPinCode(
+    group_code: string,
+    pin_code: string
+  ): Promise<GroupPinCode> {
     return this.fetchWithAuth(`/group-pin-codes/${group_code}`, {
       method: 'PUT',
       body: JSON.stringify({ pin_code }),
+    });
+  }
+
+  // Event operations
+  async getEvents(): Promise<Event[]> {
+    return this.fetchWithAuth('/events');
+  }
+
+  async getUserEvents(supporterId: number): Promise<Event[]> {
+    return this.fetchWithAuth(`/events/user/${supporterId}`);
+  }
+
+  async createEvent(event: {
+    event_name: string;
+    event_date: string;
+    created_by?: number;
+  }): Promise<Event> {
+    return this.fetchWithAuth('/events', {
+      method: 'POST',
+      body: JSON.stringify(event),
+    });
+  }
+
+  async submitEventResponse(
+    eventId: number,
+    response: {
+      supporter_id: number;
+      attendance_status: 'Join' | 'Not Able' | 'Not Decide';
+    }
+  ): Promise<EventResponse> {
+    return this.fetchWithAuth(`/events/${eventId}/response`, {
+      method: 'POST',
+      body: JSON.stringify(response),
+    });
+  }
+
+  async getEventResponses(eventId: number): Promise<EventResponse[]> {
+    return this.fetchWithAuth(`/events/${eventId}/responses`);
+  }
+
+  async updateEvent(
+    eventId: number,
+    event: {
+      event_name: string;
+      event_date: string;
+    }
+  ): Promise<Event> {
+    return this.fetchWithAuth(`/events/${eventId}`, {
+      method: 'PUT',
+      body: JSON.stringify(event),
+    });
+  }
+
+  async deleteEvent(eventId: number): Promise<{ message: string }> {
+    return this.fetchWithAuth(`/events/${eventId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async updateEventResponse(
+    responseId: number,
+    response: {
+      attendance_status: 'Join' | 'Not Able' | 'Not Decide';
+    }
+  ): Promise<EventResponse> {
+    return this.fetchWithAuth(`/event-responses/${responseId}`, {
+      method: 'PUT',
+      body: JSON.stringify(response),
     });
   }
 }
