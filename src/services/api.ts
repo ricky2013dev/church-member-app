@@ -33,6 +33,9 @@ class ApiService {
     registration_status: 'Visitor' | 'Registration Complete';
     input_date: string;
     notes: string;
+    address?: string;
+    zipcode?: string;
+    life_group?: string;
     family_picture_url: string;
     main_supporter_id?: number | null;
     sub_supporter_id?: number | null;
@@ -61,6 +64,7 @@ class ApiService {
       sub_supporter_id?: number | null;
     }
   ): Promise<Family> {
+    console.log('Updating family:', id, family);
     return this.fetchWithAuth(`/families/${id}`, {
       method: 'PUT',
       body: JSON.stringify(family),

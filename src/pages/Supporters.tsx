@@ -234,13 +234,14 @@ const Supporters: React.FC = () => {
       >
         <div className=" text-right p-0 mb-1 ">
           {user?.group_code === 'ADM' && (
+            <>
             <button
               onClick={() => setIsManagingGroupCodes(!isManagingGroupCodes)}
               className="btn p-0 btn-outline"
             >
               {isManagingGroupCodes ? '-' : '+'} G Pin
             </button>
-          )}
+          
           <button
             onClick={() => setIsAddingSupporter(true)}
             className="btn btn-primary p-0 m-0 "
@@ -248,6 +249,8 @@ const Supporters: React.FC = () => {
           >
             + Supp
           </button>
+          </>
+          )}
         </div>
       </div>
 

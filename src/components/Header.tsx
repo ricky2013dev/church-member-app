@@ -24,7 +24,7 @@ const Header: React.FC = () => {
       <div className="header-container">
         <div className="header-main">
           <div className="header-left">
-            <h1 className="header-title">{import.meta.env.VITE_APP_TITLE || 'New Member'}</h1>
+            <h1 className="header-title hidden-mobile">11{import.meta.env.VITE_APP_TITLE || 'New Member'}</h1>
 
             <nav className="header-nav desktop-nav">
               <Link to="/" className={`nav-link ${isActive('/') ? 'active' : ''}`}>
@@ -48,7 +48,7 @@ const Header: React.FC = () => {
           <div className="header-right">
             <div
               className="user-info"
-              style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginRight: '1rem' }}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginRight: '0.5rem' }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 {user?.profile_picture_url ? (
@@ -78,9 +78,9 @@ const Header: React.FC = () => {
                     {user?.gender === 'male' ? '👨' : '👩'}
                   </div>
                 )}
-                <div style={{ display: 'flex', flexDirection: 'column', fontSize: '0.875rem' }}>
-                  <span style={{ fontWeight: '500', color: '#1f2937' }}>{user?.name}</span>
-                  <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>{user?.group_code}</span>
+                <div style={{ display: 'flex', flexDirection: 'column', fontSize: '0.9rem', paddingRight: '0.5rem' }}>
+                  <span style={{ fontWeight: '800', color: '#79899fff' }}>{user?.name}</span>
+                  
                 </div>
               </div>
 

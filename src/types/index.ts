@@ -7,6 +7,7 @@ export interface Family {
   notes?: string;
   address?: string;
   zipcode?: string;
+  life_group?: string;
   main_supporter_id?: number;
   sub_supporter_id?: number;
   created_at: string;

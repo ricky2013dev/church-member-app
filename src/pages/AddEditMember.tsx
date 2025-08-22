@@ -20,6 +20,7 @@ const AddEditMember: React.FC = () => {
     notes: '',
     address: '',
     zipcode: '',
+    life_group: '',
     main_supporter_id: undefined,
     sub_supporter_id: undefined,
     created_at: '',
@@ -215,6 +216,7 @@ const AddEditMember: React.FC = () => {
           notes: family.notes,
           address: family.address,
           zipcode: family.zipcode,
+          life_group: family.life_group,
           family_picture_url: family.family_picture_url,
           main_supporter_id: family.main_supporter_id || undefined,
           sub_supporter_id: family.sub_supporter_id || undefined,
@@ -253,6 +255,7 @@ const AddEditMember: React.FC = () => {
           notes: family.notes || '',
           address: family.address || '',
           zipcode: family.zipcode || '',
+          life_group: family.life_group || '',
           family_picture_url: family.family_picture_url || '',
           main_supporter_id: family.main_supporter_id || undefined,
           sub_supporter_id: family.sub_supporter_id || undefined,
@@ -325,7 +328,10 @@ const AddEditMember: React.FC = () => {
   return (
     <div className="container">
       <h1 className="page-title">
-        {isEditing ? `${t('edit')} ${t('familyName')}` : `${t('addNew')} ${t('familyName')}`}
+            <div className="form-group">
+              <label style={{ fontSize: '1.125rem', color: '#6b7280' }}>[ {family.family_name} ]</label>
+
+            </div>
       </h1>
 
       {error && (
@@ -339,20 +345,11 @@ const AddEditMember: React.FC = () => {
 
       <div className="card">
         {/* Family Information */}
-        <div className="mb-8">
-          <h2 className="card-header">Family Information</h2>
+        <div className="mb-4">
+        
 
           <div className="form-grid mb-4">
-            <div className="form-group">
-              <label className="form-label">{t('familyName')}</label>
-              <input
-                type="text"
-                value={family.family_name}
-                readOnly
-                className="form-input"
-                style={{ backgroundColor: '#f9fafb' }}
-              />
-            </div>
+
 
             <div className="form-group">
               <label className="form-label">{t('inputDate')} (Sunday only)</label>
@@ -397,27 +394,9 @@ const AddEditMember: React.FC = () => {
               />
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Zipcode</label>
-              <input
-                type="text"
-                value={family.zipcode || ''}
-                onChange={e => handleFamilyChange('zipcode', e.target.value)}
-                className="form-input"
-                placeholder="Enter zipcode"
-                maxLength={10}
-              />
-            </div>
 
-            <div className="form-group">
-              <label className="form-label">Family Notes</label>
-              <textarea
-                value={family.notes}
-                onChange={e => handleFamilyChange('notes', e.target.value)}
-                rows={5}
-                className="form-input form-textarea"
-              />
-            </div>
+
+          </div>
 
             <div className="form-group">
               <label className="form-label">{t('familyPicture')}</label>
@@ -452,10 +431,17 @@ const AddEditMember: React.FC = () => {
                 </div>
               )}
             </div>
-          </div>
-
+            <div className="form-group">
+              <label className="form-label">Family Notes</label>
+              <textarea
+                value={family.notes}
+                onChange={e => handleFamilyChange('notes', e.target.value)}
+                rows={5}
+                className="form-input form-textarea"
+              />
+            </div>
           <div className="form-group">
-            <label className="form-label">Main Supporter</label>
+            <label className="form-label">새가족팀원</label>
             <select
               value={family.main_supporter_id || ''}
               onChange={e =>
@@ -466,7 +452,7 @@ const AddEditMember: React.FC = () => {
               }
               className="form-input form-select"
             >
-              <option value="">Select main supporter</option>
+              <option value="">-----</option>
               {supporters.map(supporter => (
                 <option key={supporter.id} value={supporter.id}>
                   {supporter.name}
@@ -475,26 +461,16 @@ const AddEditMember: React.FC = () => {
             </select>
           </div>
 
-          <div className="form-group">
-            <label className="form-label">Sub Supporter</label>
-            <select
-              value={family.sub_supporter_id || ''}
-              onChange={e =>
-                handleFamilyChange(
-                  'sub_supporter_id',
-                  e.target.value ? parseInt(e.target.value) : undefined
-                )
-              }
-              className="form-input form-select"
-            >
-              <option value="">Select sub supporter</option>
-              {supporters.map(supporter => (
-                <option key={supporter.id} value={supporter.id}>
-                  {supporter.name}
-                </option>
-              ))}
-            </select>
-          </div>
+            <div className="form-group">
+              <label className="form-label">목장배정</label>
+              <input
+                type="text"
+                value={family.life_group || ''}
+                onChange={e => handleFamilyChange('life_group', e.target.value)}
+                className="form-input"
+                placeholder="Enter life group"
+              />
+            </div>
         </div>
 
         {/* Members */}

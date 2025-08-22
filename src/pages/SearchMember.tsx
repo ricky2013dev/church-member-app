@@ -298,16 +298,7 @@ const SearchMember: React.FC = () => {
                         )}
                       </p>
                       <p style={{ marginTop: '0.25rem' }}>{formatDateOnly(family.input_date)}</p>
-                      {family.main_supporter && (
-                        <p style={{ marginTop: '0.25rem', fontSize: '0.875rem', color: '#059669' }}>
-                          Main: {family.main_supporter.name}
-                        </p>
-                      )}
-                      {family.sub_supporter && (
-                        <p style={{ marginTop: '0.1rem', fontSize: '0.875rem', color: '#0891b2' }}>
-                          Sub: {family.sub_supporter.name}
-                        </p>
-                      )}
+             
                     </div>
                   </div>
                   <div className="family-item-right">
@@ -315,7 +306,11 @@ const SearchMember: React.FC = () => {
                       {getChildrenCount(family)} {t('numberOfChildren')}
                     </div>
                     <div className="family-children">{family.members?.length || 0} members</div>
+                      {family.main_supporter?.name && <p style={{ marginTop: '0.25rem', fontSize: '0.875rem', color: '#059669' }}>팀원: {family.main_supporter?.name}</p>}
+                      {family.life_group && <p style={{ marginTop: '0.25rem', fontSize: '0.875rem', color: '#7c3aed' }}>목장: {family.life_group}</p>}
+
                   </div>
+                  
                 </div>
               </Link>
             ))}
