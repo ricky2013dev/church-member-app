@@ -5,9 +5,26 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Development Commands
 
 ### Frontend (React/Vite)
+
 ```bash
 # Development server (auto-selects port, usually 5173)
 npm run dev
+
+# Full development environment (starts both frontend + backend)
+npm run dev:full      # Using concurrently package
+./dev start           # Using bash script (recommended)
+
+# Development script commands
+./dev start    # Start both servers
+./dev stop     # Stop both servers
+./dev restart  # Restart both servers
+./dev status   # Check server status
+
+# Alternative npm script commands
+npm run dev:start     # Start both servers
+npm run dev:stop      # Stop both servers
+npm run dev:restart   # Restart both servers
+npm run dev:status    # Check server status
 
 # Build for production
 npm run build
@@ -30,6 +47,7 @@ npm run test:ui       # UI mode
 ```
 
 ### Backend (Node.js/Express)
+
 ```bash
 cd server
 
@@ -44,6 +62,7 @@ npm run test-db
 ```
 
 ### Database Operations
+
 ```bash
 # Add new database column (example)
 node server/add-life-group-column.js
@@ -55,6 +74,7 @@ node server/test-life-group.js
 ## Architecture Overview
 
 ### Full-Stack Structure
+
 - **Frontend**: React 19 + TypeScript + Vite development server
 - **Backend**: Express.js API server with PostgreSQL integration
 - **Database**: Supabase PostgreSQL with custom authentication system
@@ -62,13 +82,16 @@ node server/test-life-group.js
 - **Authentication**: Dual pin code system (personal + group codes)
 
 ### Core Data Model
+
 The application manages church families with a hierarchical structure:
+
 - **Families** contain multiple **Members** (husband, wife, children)
 - **Supporters** are staff who manage families (NOR/CAR/ALL groups)
 - **Education Status** tracks course completion (101/201/301/401)
 - **Group Pin Codes** control access levels by supporter group
 
 ### Authentication Flow
+
 1. User selects supporter account from dropdown
 2. Enters personal 4-digit pin code
 3. Enters group 4-digit pin code
@@ -76,11 +99,13 @@ The application manages church families with a hierarchical structure:
 5. Sets authenticated user context with role-based permissions
 
 ### Permission System
+
 - **NOR Group**: Manage assigned families only
 - **CAR Group**: Similar to NOR with care-specific features
 - **ALL Group**: Full system access including supporter management
 
 ### Key Directories
+
 ```
 src/
 ├── contexts/       # React contexts (AuthContext, LanguageContext)
@@ -108,24 +133,28 @@ sql/
 ## Development Patterns
 
 ### API Integration
+
 - All API calls go through `src/services/api.ts` using the ApiService class
 - Frontend uses React contexts for state management (auth, language)
 - Backend follows RESTful conventions with comprehensive error handling
 - Database operations use parameterized queries to prevent SQL injection
 
 ### Form Handling
+
 - Family forms auto-generate family names from husband/wife names
 - Member relationship enforcement (husband, wife, children)
 - File uploads integrate with Supabase Storage with fallback to local storage
 - Date inputs restricted to Sundays only for registration dates
 
 ### Mobile-First Design
+
 - CSS uses mobile-first responsive breakpoints
 - Forms stack vertically on mobile, grid layout on desktop
 - Touch-friendly button sizes (minimum 44px height)
 - Optimized navigation for mobile screens
 
 ### Testing Strategy
+
 - Unit tests for business logic using Vitest
 - Component tests avoided due to React 19 compatibility issues
 - API integration tests for critical data flows
@@ -136,12 +165,14 @@ sql/
 ### Required Environment Variables
 
 **Frontend (.env):**
+
 ```env
 VITE_APP_TITLE=Church Member Management
 VITE_API_URL=http://localhost:3000/api
 ```
 
 **Backend (server/.env):**
+
 ```env
 PORT=3000
 DB_HOST=db.[PROJECT-REF].supabase.co
@@ -156,18 +187,21 @@ SUPABASE_ANON_KEY=your_supabase_anon_key
 ## Database Schema Notes
 
 ### Family Data Structure
+
 - Families have `life_group` field for small group assignments
 - `registration_status` tracks visitor vs. complete registration
 - `input_date` must be a Sunday (business rule)
 - Optional main/sub supporter assignments
 
 ### Member Relationships
+
 - Fixed relationships: 'husband' | 'wife' | 'child'
 - Children can have member_group: 'college' | 'youth' | 'kid' | 'kinder'
 - Education status tracks course completion with dates
 - Phone numbers and birthdates are optional
 
 ### File Storage
+
 - Family and member photos stored in Supabase 'church-pictures' bucket
 - Fallback to local uploads/ directory if Supabase unavailable
 - Image uploads restricted by type and size (5MB limit)
@@ -175,6 +209,7 @@ SUPABASE_ANON_KEY=your_supabase_anon_key
 ## Common Development Tasks
 
 ### Adding New Database Fields
+
 1. Create migration script in server/ directory (see add-life-group-column.js example)
 2. Update TypeScript interfaces in src/types/index.ts
 3. Modify API endpoints in server/server.js (both create and update operations)
@@ -182,21 +217,24 @@ SUPABASE_ANON_KEY=your_supabase_anon_key
 5. Add validation and error handling
 
 ### Testing API Changes
-- Use server/test-*.js scripts for integration testing
+
+- Use server/test-\*.js scripts for integration testing
 - Test both create and update operations
 - Verify data persistence with separate read operations
 - Check error handling for invalid inputs
+- run the tests to validate the changes made to the \*.tsx
 
 ### Mobile Responsive Updates
+
 - Always test forms on mobile devices
 - Use CSS mobile-first approach with @media breakpoints
 - Ensure touch targets meet 44px minimum size
 - Test navigation and form submission on small screens
 - when save the file, make code prettier by improving formatting, organization, and readability
-- Try to create reusable component if there is duplication in the code 
-
+- Try to create reusable component if there is duplication in the code
 
 ### CSS
+
 - Better Maintainability: Styles are centralized and organized
 - Consistent Design: Common patterns reused across components
 - Mobile Optimization: All touch targets meet 44px minimum

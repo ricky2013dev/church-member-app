@@ -11,6 +11,36 @@ const AddEditMember: React.FC = () => {
   const { t } = useLanguage();
   const isEditing = Boolean(id);
 
+  // Helper function to sort members: husband, wife, then children by age (oldest first)
+  const sortMembers = (members: Member[]): Member[] => {
+    return [...members].sort((a, b) => {
+      const relationshipOrder = { husband: 0, wife: 1, child: 2 };
+
+      const aOrder =
+        relationshipOrder[a.relationship as keyof typeof relationshipOrder] ??
+        3;
+      const bOrder =
+        relationshipOrder[b.relationship as keyof typeof relationshipOrder] ??
+        3;
+
+      if (aOrder !== bOrder) {
+        return aOrder - bOrder;
+      }
+
+      // If both are children, sort by age (oldest first)
+      if (a.relationship === 'child' && b.relationship === 'child') {
+        if (a.birth_date && b.birth_date) {
+          return (
+            new Date(a.birth_date).getTime() - new Date(b.birth_date).getTime()
+          );
+        }
+        return 0;
+      }
+
+      return 0;
+    });
+  };
+
   const [family, setFamily] = useState<Family>({
     id: 0,
     family_name: '',
@@ -55,17 +85,18 @@ const AddEditMember: React.FC = () => {
           setLoading(true);
           setError(null);
           const familyData = await apiService.getFamily(parseInt(id));
-          
+
           // Ensure input_date is properly formatted as YYYY-MM-DD string
-          if (familyData.input_date && typeof familyData.input_date === 'string') {
+          if (
+            familyData.input_date &&
+            typeof familyData.input_date === 'string'
+          ) {
             familyData.input_date = familyData.input_date.split('T')[0];
           }
-          
+
           setFamily(familyData);
-          const membersData = familyData.members.sort((a, b) =>
-            a.relationship.localeCompare(b.relationship)
-          );
-          setMembers(membersData);
+          const sortedMembers = sortMembers(familyData.members);
+          setMembers(sortedMembers);
         } catch (err) {
           console.error('Error fetching family:', err);
           setError('Failed to load family data');
@@ -101,7 +132,7 @@ const AddEditMember: React.FC = () => {
             ],
           };
           setFamily(mockFamily);
-          setMembers(mockFamily.members);
+          setMembers(sortMembers(mockFamily.members));
         } finally {
           setLoading(false);
         }
@@ -144,7 +175,7 @@ const AddEditMember: React.FC = () => {
           education_status: [],
         },
       ];
-      setMembers(newMembers);
+      setMembers(sortMembers(newMembers));
     }
   }, [id, isEditing]);
 
@@ -165,14 +196,27 @@ const AddEditMember: React.FC = () => {
     setFamily(prev => ({ ...prev, family_name: familyName }));
   }, [members]);
 
-  const handleFamilyChange = (field: keyof Family, value: string | number | undefined) => {
+  const handleFamilyChange = (
+    field: keyof Family,
+    value: string | number | undefined
+  ) => {
     setFamily(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleMemberChange = (index: number, field: keyof Member, value: string) => {
+  const handleMemberChange = (
+    index: number,
+    field: keyof Member,
+    value: string
+  ) => {
     const updatedMembers = [...members];
     updatedMembers[index] = { ...updatedMembers[index], [field]: value };
-    setMembers(updatedMembers);
+
+    // Re-sort members if birth date is changed (to maintain age ordering for children)
+    if (field === 'birth_date') {
+      setMembers(sortMembers(updatedMembers));
+    } else {
+      setMembers(updatedMembers);
+    }
   };
 
   const addChild = () => {
@@ -193,13 +237,14 @@ const AddEditMember: React.FC = () => {
         updated_at: '',
         education_status: [],
       };
-      setMembers([...members, newChild]);
+      const updatedMembers = [...members, newChild];
+      setMembers(sortMembers(updatedMembers));
     }
   };
 
   const removeChild = (index: number) => {
     const updatedMembers = members.filter((_, i) => i !== index);
-    setMembers(updatedMembers);
+    setMembers(sortMembers(updatedMembers));
   };
 
   const handleSave = async () => {
@@ -285,7 +330,9 @@ const AddEditMember: React.FC = () => {
       navigate('/search');
     } catch (err) {
       console.error('Error saving family:', err);
-      setError(`Failed to save family: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      setError(
+        `Failed to save family: ${err instanceof Error ? err.message : 'Unknown error'}`
+      );
     } finally {
       setLoading(false);
     }
@@ -295,7 +342,9 @@ const AddEditMember: React.FC = () => {
     navigate('/search');
   };
 
-  const handleFamilyPictureUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFamilyPictureUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -325,7 +374,9 @@ const AddEditMember: React.FC = () => {
     return (
       <div className="container">
         <div className="text-center" style={{ padding: '4rem' }}>
-          <div style={{ fontSize: '1.125rem', color: '#6b7280' }}>Loading...</div>
+          <div style={{ fontSize: '1.125rem', color: '#6b7280' }}>
+            Loading...
+          </div>
         </div>
       </div>
     );
@@ -334,16 +385,21 @@ const AddEditMember: React.FC = () => {
   return (
     <div className="container">
       <h1 className="page-title">
-            <div className="form-group">
-              <label style={{ fontSize: '1.125rem', color: '#6b7280' }}>[ {family.family_name} ]</label>
-
-            </div>
+        <div className="form-group">
+          <label style={{ fontSize: '1.125rem', color: '#6b7280' }}>
+            [ {family.family_name} ]
+          </label>
+        </div>
       </h1>
 
       {error && (
         <div
           className="card"
-          style={{ backgroundColor: '#fef2f2', borderColor: '#fecaca', marginBottom: '1rem' }}
+          style={{
+            backgroundColor: '#fef2f2',
+            borderColor: '#fecaca',
+            marginBottom: '1rem',
+          }}
         >
           <div style={{ color: '#dc2626', fontSize: '0.875rem' }}>{error}</div>
         </div>
@@ -352,13 +408,11 @@ const AddEditMember: React.FC = () => {
       <div className="card">
         {/* Family Information */}
         <div className="mb-4">
-        
-
           <div className="form-grid mb-4">
-
-
             <div className="form-group">
-              <label className="form-label">{t('inputDate')} (Sunday only)</label>
+              <label className="form-label">
+                {t('inputDate')} (Sunday only)
+              </label>
               <select
                 value={family.input_date}
                 onChange={e => handleFamilyChange('input_date', e.target.value)}
@@ -385,7 +439,9 @@ const AddEditMember: React.FC = () => {
                 className="form-input form-select"
               >
                 <option value="Visitor">{t('visitor')}</option>
-                <option value="Registration Complete">{t('registrationComplete')}</option>
+                <option value="Registration Complete">
+                  {t('registrationComplete')}
+                </option>
               </select>
             </div>
 
@@ -399,53 +455,62 @@ const AddEditMember: React.FC = () => {
                 placeholder="Enter family address"
               />
             </div>
-
-
-
           </div>
 
-            <div className="form-group">
-              <label className="form-label">{t('familyPicture')}</label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleFamilyPictureUpload}
-                disabled={uploadingPicture}
-                className="form-input"
-              />
-              {uploadingPicture && (
-                <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
-                  Uploading picture...
+          <div className="form-group">
+            <label className="form-label">{t('familyPicture')}</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFamilyPictureUpload}
+              disabled={uploadingPicture}
+              className="form-input"
+            />
+            {uploadingPicture && (
+              <div
+                style={{
+                  fontSize: '0.75rem',
+                  color: '#6b7280',
+                  marginTop: '0.25rem',
+                }}
+              >
+                Uploading picture...
+              </div>
+            )}
+            {family.family_picture_url && (
+              <div style={{ marginTop: '0.5rem' }}>
+                <img
+                  src={family.family_picture_url}
+                  alt="Family picture"
+                  style={{
+                    maxWidth: '200px',
+                    maxHeight: '150px',
+                    objectFit: 'cover',
+                    borderRadius: '0.375rem',
+                    border: '1px solid #d1d5db',
+                  }}
+                />
+                <div
+                  style={{
+                    fontSize: '0.75rem',
+                    color: '#6b7280',
+                    marginTop: '0.25rem',
+                  }}
+                >
+                  Picture uploaded successfully
                 </div>
-              )}
-              {family.family_picture_url && (
-                <div style={{ marginTop: '0.5rem' }}>
-                  <img
-                    src={family.family_picture_url}
-                    alt="Family picture"
-                    style={{
-                      maxWidth: '200px',
-                      maxHeight: '150px',
-                      objectFit: 'cover',
-                      borderRadius: '0.375rem',
-                      border: '1px solid #d1d5db',
-                    }}
-                  />
-                  <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
-                    Picture uploaded successfully
-                  </div>
-                </div>
-              )}
-            </div>
-            <div className="form-group">
-              <label className="form-label">Family Notes</label>
-              <textarea
-                value={family.notes}
-                onChange={e => handleFamilyChange('notes', e.target.value)}
-                rows={5}
-                className="form-input form-textarea"
-              />
-            </div>
+              </div>
+            )}
+          </div>
+          <div className="form-group">
+            <label className="form-label">Family Notes</label>
+            <textarea
+              value={family.notes}
+              onChange={e => handleFamilyChange('notes', e.target.value)}
+              rows={5}
+              className="form-input form-textarea"
+            />
+          </div>
           <div className="form-group">
             <label className="form-label">새가족팀원</label>
             <select
@@ -467,16 +532,16 @@ const AddEditMember: React.FC = () => {
             </select>
           </div>
 
-            <div className="form-group">
-              <label className="form-label">목장배정</label>
-              <input
-                type="text"
-                value={family.life_group || ''}
-                onChange={e => handleFamilyChange('life_group', e.target.value)}
-                className="form-input"
-                placeholder="Enter life group"
-              />
-            </div>
+          <div className="form-group">
+            <label className="form-label">목장배정</label>
+            <input
+              type="text"
+              value={family.life_group || ''}
+              onChange={e => handleFamilyChange('life_group', e.target.value)}
+              className="form-input"
+              placeholder="Enter life group"
+            />
+          </div>
         </div>
 
         {/* Members */}
@@ -534,7 +599,9 @@ const AddEditMember: React.FC = () => {
                   <input
                     type="text"
                     value={member.korean_name || ''}
-                    onChange={e => handleMemberChange(index, 'korean_name', e.target.value)}
+                    onChange={e =>
+                      handleMemberChange(index, 'korean_name', e.target.value)
+                    }
                     className="form-input"
                   />
                 </div>
@@ -543,7 +610,9 @@ const AddEditMember: React.FC = () => {
                   <input
                     type="text"
                     value={member.english_name || ''}
-                    onChange={e => handleMemberChange(index, 'english_name', e.target.value)}
+                    onChange={e =>
+                      handleMemberChange(index, 'english_name', e.target.value)
+                    }
                     className="form-input"
                   />
                 </div>
@@ -552,7 +621,9 @@ const AddEditMember: React.FC = () => {
                   <input
                     type="tel"
                     value={member.phone_number || ''}
-                    onChange={e => handleMemberChange(index, 'phone_number', e.target.value)}
+                    onChange={e =>
+                      handleMemberChange(index, 'phone_number', e.target.value)
+                    }
                     className="form-input"
                   />
                 </div>
@@ -562,7 +633,9 @@ const AddEditMember: React.FC = () => {
                   <input
                     type="date"
                     value={member.birth_date || ''}
-                    onChange={e => handleMemberChange(index, 'birth_date', e.target.value)}
+                    onChange={e =>
+                      handleMemberChange(index, 'birth_date', e.target.value)
+                    }
                     className="form-input"
                   />
                 </div>
@@ -573,7 +646,13 @@ const AddEditMember: React.FC = () => {
                       <label className="form-label">{t('memberGroup')}</label>
                       <select
                         value={member.member_group || ''}
-                        onChange={e => handleMemberChange(index, 'member_group', e.target.value)}
+                        onChange={e =>
+                          handleMemberChange(
+                            index,
+                            'member_group',
+                            e.target.value
+                          )
+                        }
                         className="form-input form-select"
                       >
                         <option value="">{t('memberGroup')}</option>
@@ -589,7 +668,13 @@ const AddEditMember: React.FC = () => {
                       <input
                         type="number"
                         value={member.grade_level || ''}
-                        onChange={e => handleMemberChange(index, 'grade_level', e.target.value)}
+                        onChange={e =>
+                          handleMemberChange(
+                            index,
+                            'grade_level',
+                            e.target.value
+                          )
+                        }
                         className="form-input"
                         placeholder="1-12"
                         min={0}
@@ -602,14 +687,22 @@ const AddEditMember: React.FC = () => {
                 {showIndividualPictures && (
                   <>
                     <div className="form-group">
-                      <label className="form-label">{t('individualPicture')}</label>
-                      <input type="file" accept="image/*" className="form-input" />
+                      <label className="form-label">
+                        {t('individualPicture')}
+                      </label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="form-input"
+                      />
                     </div>
                     <div className="form-group mt-4">
                       <label className="form-label">{t('memo')}</label>
                       <textarea
                         value={member.memo || ''}
-                        onChange={e => handleMemberChange(index, 'memo', e.target.value)}
+                        onChange={e =>
+                          handleMemberChange(index, 'memo', e.target.value)
+                        }
                         rows={2}
                         className="form-input form-textarea"
                       />
@@ -636,7 +729,10 @@ const AddEditMember: React.FC = () => {
             onClick={handleSave}
             disabled={loading}
             className="btn btn-primary"
-            style={{ opacity: loading ? 0.6 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}
+            style={{
+              opacity: loading ? 0.6 : 1,
+              cursor: loading ? 'not-allowed' : 'pointer',
+            }}
           >
             {loading ? 'Saving...' : t('save')}
           </button>
