@@ -15,13 +15,16 @@ export const getSundayDates = (weeksBack: number = 52): string[] => {
     // Calculate the target week's date
     const targetWeek = new Date(today);
     targetWeek.setDate(today.getDate() + i * 7);
-    
+
     // Find Sunday of that week
     const sunday = new Date(targetWeek);
     sunday.setDate(targetWeek.getDate() - targetWeek.getDay());
-    
-    const dateString = sunday.getFullYear() + '-' + 
-      String(sunday.getMonth() + 1).padStart(2, '0') + '-' + 
+
+    const dateString =
+      sunday.getFullYear() +
+      '-' +
+      String(sunday.getMonth() + 1).padStart(2, '0') +
+      '-' +
       String(sunday.getDate()).padStart(2, '0');
     dates.push(dateString);
   }
@@ -47,7 +50,43 @@ export const getMostRecentSunday = (): string => {
   const today = new Date();
   const sunday = new Date(today);
   sunday.setDate(today.getDate() - today.getDay());
-  return sunday.getFullYear() + '-' + 
-    String(sunday.getMonth() + 1).padStart(2, '0') + '-' + 
-    String(sunday.getDate()).padStart(2, '0');
+  return (
+    sunday.getFullYear() +
+    '-' +
+    String(sunday.getMonth() + 1).padStart(2, '0') +
+    '-' +
+    String(sunday.getDate()).padStart(2, '0')
+  );
+};
+
+/**
+ * Generates an array of future Sunday dates for events
+ * @param weeksForward Number of weeks forward to generate (default: 26 for 6 months)
+ * @returns Array of future Sunday dates in YYYY-MM-DD format, sorted newest first
+ */
+export const getFutureSundayDates = (weeksForward: number = 26): string[] => {
+  const dates = [];
+  const today = new Date();
+
+  // Find next Sunday from today
+  const nextSunday = new Date(today);
+  const daysUntilNextSunday = 7 - today.getDay();
+  nextSunday.setDate(
+    today.getDate() + (daysUntilNextSunday === 7 ? 0 : daysUntilNextSunday)
+  );
+
+  for (let i = 0; i < weeksForward; i++) {
+    const sunday = new Date(nextSunday);
+    sunday.setDate(nextSunday.getDate() + i * 7);
+
+    const dateString =
+      sunday.getFullYear() +
+      '-' +
+      String(sunday.getMonth() + 1).padStart(2, '0') +
+      '-' +
+      String(sunday.getDate()).padStart(2, '0');
+    dates.push(dateString);
+  }
+
+  return dates;
 };

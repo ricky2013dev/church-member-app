@@ -10,6 +10,8 @@ const Header: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
+  const isAdmin = user?.group_code === 'ADM';
+  const isTeamMember = user?.group_code === 'NOR';
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -24,16 +26,27 @@ const Header: React.FC = () => {
       <div className="header-container">
         <div className="header-main">
           <div className="header-left">
-            <h1 className="header-title hidden-mobile">{import.meta.env.VITE_APP_TITLE || 'New Member'}</h1>
+            <h1 className="header-title hidden-mobile">
+              {import.meta.env.VITE_APP_TITLE || 'New Member'}
+            </h1>
 
             <nav className="header-nav desktop-nav">
-              <Link to="/" className={`nav-link ${isActive('/') ? 'active' : ''}`}>
+              <Link
+                to="/"
+                className={`nav-link ${isActive('/') ? 'active' : ''}`}
+              >
                 {t('dashboard')}
               </Link>
-              <Link to="/search" className={`nav-link ${isActive('/search') ? 'active' : ''}`}>
+              <Link
+                to="/search"
+                className={`nav-link ${isActive('/search') ? 'active' : ''}`}
+              >
                 {t('searchMember')}
               </Link>
-              <Link to="/add" className={`nav-link ${isActive('/add') ? 'active' : ''}`}>
+              <Link
+                to="/add"
+                className={`nav-link ${isActive('/add') ? 'active' : ''}`}
+              >
                 {t('addNew')}
               </Link>
               <Link
@@ -42,15 +55,38 @@ const Header: React.FC = () => {
               >
                 Supporters
               </Link>
+              {isAdmin && (
+                <Link
+                  to="/events"
+                  className={`nav-link ${isActive('/events') ? 'active' : ''}`}
+                >
+                  Events
+                </Link>
+              )}
+              {isTeamMember && (
+                <Link
+                  to="/event-response"
+                  className={`nav-link ${isActive('/event-response') ? 'active' : ''}`}
+                >
+                  Events
+                </Link>
+              )}
             </nav>
           </div>
 
           <div className="header-right">
             <div
               className="user-info"
-              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginRight: '0.5rem' }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                marginRight: '0.5rem',
+              }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div
+                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+              >
                 {user?.profile_picture_url ? (
                   <img
                     src={user.profile_picture_url}
@@ -78,9 +114,17 @@ const Header: React.FC = () => {
                     {user?.gender === 'male' ? '👨' : '👩'}
                   </div>
                 )}
-                <div style={{ display: 'flex', flexDirection: 'column', fontSize: '0.9rem', paddingRight: '0.5rem' }}>
-                  <span style={{ fontWeight: '800', color: '#79899fff' }}>{user?.name}</span>
-                  
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    fontSize: '0.9rem',
+                    paddingRight: '0.5rem',
+                  }}
+                >
+                  <span style={{ fontWeight: '800', color: '#79899fff' }}>
+                    {user?.name}
+                  </span>
                 </div>
               </div>
 
@@ -158,6 +202,24 @@ const Header: React.FC = () => {
           >
             Supporters
           </Link>
+          {isAdmin && (
+            <Link
+              to="/events"
+              className={`mobile-nav-link ${isActive('/events') ? 'active' : ''}`}
+              onClick={closeMobileMenu}
+            >
+              Events
+            </Link>
+          )}
+          {isTeamMember && (
+            <Link
+              to="/event-response"
+              className={`mobile-nav-link ${isActive('/event-response') ? 'active' : ''}`}
+              onClick={closeMobileMenu}
+            >
+              Events
+            </Link>
+          )}
         </nav>
       </div>
     </header>

@@ -6,6 +6,8 @@ import Dashboard from './pages/Dashboard';
 import SearchMember from './pages/SearchMember';
 import AddEditMember from './pages/AddEditMember';
 import Supporters from './pages/Supporters';
+import EventManagement from './pages/EventManagement';
+import EventResponse from './pages/EventResponse';
 import Login from './pages/Login';
 import './App.css';
 
@@ -27,6 +29,8 @@ const ProtectedApp = () => {
           <Route path="/add" element={<AddEditMember />} />
           <Route path="/edit/:id" element={<AddEditMember />} />
           <Route path="/supporters" element={<Supporters />} />
+          <Route path="/events" element={<EventManagement />} />
+          <Route path="/event-response" element={<EventResponse />} />
         </Routes>
       </main>
     </div>
