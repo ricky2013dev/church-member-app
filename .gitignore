@@ -28,7 +28,6 @@ server/.env.local
 # Database
 *.db
 *.sqlite
-postgres_data/
 
 # Uploads
 server/uploads/*
@@ -53,9 +52,6 @@ Thumbs.db
 .Spotlight-V100
 .Trashes
 ehthumbs.db
-
-# Docker
-.dockerignore
 
 # Test files
 server/test-db.js

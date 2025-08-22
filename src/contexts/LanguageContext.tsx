@@ -12,19 +12,19 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 const translations = {
   ko: {
-    dashboard: '대시보드',
-    searchMember: '성도 검색',
-    addNew: '새 가족 등록',
+    dashboard: 'Dashboard',
+    searchMember: 'Member Search',
+    addNew: 'Add New',
     familyName: '가정명',
     registrationStatus: '등록 상태',
-    inputDate: '입력일',
-    numberOfChildren: '자녀 수',
+    inputDate: '방문일',
+    numberOfChildren: '자녀',
     visitor: '방문자',
     registrationComplete: '등록 완료',
-    weeklyRegistrations: '주간 신규 등록',
+    weeklyRegistrations: '주별 새가족 현황',
     recentFamilies: '최근 등록 가족',
     week: '주',
-    newFamilies: '신규 가족',
+    newFamilies: '새가족',
     search: '검색',
     filter: '필터',
     name: '이름',
@@ -38,12 +38,12 @@ const translations = {
     child: '자녀',
     memo: '메모',
     educationStatus: '교육 상태',
-    memberGroup: '그룹',
-    gradeLevel: '학년',
-    college: '대학부',
-    youth: '청년부',
-    kid: '어린이',
-    kinder: '유치부',
+    memberGroup: 'Group',
+    gradeLevel: 'Grade',
+    college: 'Young Adults',
+    youth: 'Youth',
+    kid: 'Team Kids',
+    kinder: 'Dream Kids',
     save: '저장',
     cancel: '취소',
     edit: '편집',
@@ -51,7 +51,7 @@ const translations = {
     add: '추가',
     upload: '업로드',
     familyPicture: '가족 사진',
-    individualPicture: '개인 사진'
+    individualPicture: '개인 사진',
   },
   en: {
     dashboard: 'Dashboard',
@@ -93,8 +93,8 @@ const translations = {
     add: 'Add',
     upload: 'Upload',
     familyPicture: 'Family Picture',
-    individualPicture: 'Individual Picture'
-  }
+    individualPicture: 'Individual Picture',
+  },
 };
 
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {

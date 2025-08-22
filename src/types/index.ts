@@ -5,9 +5,16 @@ export interface Family {
   registration_status: 'Visitor' | 'Registration Complete';
   input_date: string;
   notes?: string;
+  address?: string;
+  zipcode?: string;
+  life_group?: string;
+  main_supporter_id?: number;
+  sub_supporter_id?: number;
   created_at: string;
   updated_at: string;
   members: Member[];
+  main_supporter?: Supporter;
+  sub_supporter?: Supporter;
 }
 
 export interface Member {
@@ -36,8 +43,38 @@ export interface EducationStatus {
   created_at: string;
 }
 
+export interface Supporter {
+  display_sort: number;
+  id: number;
+  name: string;
+  group_code: string;
+  phone_number?: string;
+  email?: string;
+  profile_picture_url?: string;
+  gender: 'male' | 'female';
+  status: 'on' | 'off';
+  pin_code: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface GroupPinCode {
+  id: number;
+  group_code: string;
+  pin_code: string;
+  group_name: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface WeeklyStats {
   week: string;
+  new_families: number;
+  total_families: number;
+}
+
+export interface MonthlyStats {
+  month: string;
   new_families: number;
   total_families: number;
 }
