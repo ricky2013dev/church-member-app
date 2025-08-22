@@ -24,7 +24,7 @@ const Header: React.FC = () => {
       <div className="header-container">
         <div className="header-main">
           <div className="header-left">
-            <h1 className="header-title hidden-mobile">11{import.meta.env.VITE_APP_TITLE || 'New Member'}</h1>
+            <h1 className="header-title hidden-mobile">{import.meta.env.VITE_APP_TITLE || 'New Member'}</h1>
 
             <nav className="header-nav desktop-nav">
               <Link to="/" className={`nav-link ${isActive('/') ? 'active' : ''}`}>

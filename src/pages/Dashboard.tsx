@@ -15,21 +15,23 @@ const Dashboard: React.FC = () => {
   const [filteredFamilies, setFilteredFamilies] = useState<Family[]>([]);
   const [selectedWeeks, setSelectedWeeks] = useState<string[]>([]);
 
-  // Helper function: Generate weekly stats for past 8 weeks (2 months)
-  const generatePastEightWeeks = (): WeeklyStats[] => {
+  // Helper function: Generate weekly stats for past 26 weeks (6 months)
+  const generatePastSixMonths = (): WeeklyStats[] => {
     const weeks: WeeklyStats[] = [];
     const today = new Date();
     
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < 26; i++) {
       // Calculate week start (Sunday)
       const weekStart = new Date(today);
-      weekStart.setDate(today.getDate() - (today.getDay() + (i * 7)));
+      weekStart.setDate(today.getDate() - today.getDay() - (i * 7));
       
       // Calculate week end (Saturday)
       const weekEnd = new Date(weekStart);
       weekEnd.setDate(weekStart.getDate() + 6);
       
-      const weekString = weekStart.toISOString().split('T')[0];
+      const weekString = weekStart.getFullYear() + '-' + 
+        String(weekStart.getMonth() + 1).padStart(2, '0') + '-' + 
+        String(weekStart.getDate()).padStart(2, '0');
       
       // Count families registered in this week
       const familiesInWeek = allFamilies.filter(family => {
@@ -121,7 +123,7 @@ const Dashboard: React.FC = () => {
   // Effect: Generate weekly stats when families data changes
   useEffect(() => {
     if (allFamilies.length > 0) {
-      const stats = generatePastEightWeeks();
+      const stats = generatePastSixMonths();
       setWeeklyStats(stats);
     }
   }, [allFamilies]);
@@ -164,7 +166,6 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="container">
-      <h1 className="page-title">{t('dashboard')}</h1>
 
       {/* Weekly Chart */}
       <section className="card">
@@ -178,7 +179,7 @@ const Dashboard: React.FC = () => {
       {/* Weekly Registration Stats */}
       <section className="card">
         <h2 className="card-header">
-          {t('weeklyRegistrations')} (2months)
+          {t('weeklyRegistrations')} (6months)
         </h2>
         
         <div className="stats-grid">

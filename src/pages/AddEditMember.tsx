@@ -55,6 +55,12 @@ const AddEditMember: React.FC = () => {
           setLoading(true);
           setError(null);
           const familyData = await apiService.getFamily(parseInt(id));
+          
+          // Ensure input_date is properly formatted as YYYY-MM-DD string
+          if (familyData.input_date && typeof familyData.input_date === 'string') {
+            familyData.input_date = familyData.input_date.split('T')[0];
+          }
+          
           setFamily(familyData);
           const membersData = familyData.members.sort((a, b) =>
             a.relationship.localeCompare(b.relationship)

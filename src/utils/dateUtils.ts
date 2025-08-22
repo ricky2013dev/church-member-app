@@ -12,10 +12,18 @@ export const getSundayDates = (weeksBack: number = 52): string[] => {
   const today = new Date();
 
   for (let i = -weeksBack; i < 1; i++) {
-    const date = new Date(today);
-    date.setDate(today.getDate() + i * 7);
-    const sunday = new Date(date.setDate(date.getDate() - date.getDay()));
-    dates.push(sunday.toISOString().split('T')[0]);
+    // Calculate the target week's date
+    const targetWeek = new Date(today);
+    targetWeek.setDate(today.getDate() + i * 7);
+    
+    // Find Sunday of that week
+    const sunday = new Date(targetWeek);
+    sunday.setDate(targetWeek.getDate() - targetWeek.getDay());
+    
+    const dateString = sunday.getFullYear() + '-' + 
+      String(sunday.getMonth() + 1).padStart(2, '0') + '-' + 
+      String(sunday.getDate()).padStart(2, '0');
+    dates.push(dateString);
   }
 
   return dates.sort().reverse();
@@ -37,6 +45,9 @@ export const formatDateOnly = (dateString?: string | null): string => {
  */
 export const getMostRecentSunday = (): string => {
   const today = new Date();
-  const sunday = new Date(today.setDate(today.getDate() - today.getDay()));
-  return sunday.toISOString().split('T')[0];
+  const sunday = new Date(today);
+  sunday.setDate(today.getDate() - today.getDay());
+  return sunday.getFullYear() + '-' + 
+    String(sunday.getMonth() + 1).padStart(2, '0') + '-' + 
+    String(sunday.getDate()).padStart(2, '0');
 };

@@ -62,8 +62,7 @@ const WeeklyChart: React.FC<WeeklyChartProps> = ({
   return (
     <div className="weekly-chart-container">
       <div className="chart-header">
-        <h3>Weekly Registration Trends</h3>
-        <p>Click on bars to filter families by week</p>
+        <h3>Weekly Trends</h3>
       </div>
       
       <ResponsiveContainer width="100%" height={300}>
