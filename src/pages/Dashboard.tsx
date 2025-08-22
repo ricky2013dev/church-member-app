@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 
 import { useLanguage } from '../contexts/LanguageContext';
 import { apiService } from '../services/api';
-import { formatDateOnly } from '../utils/dateUtils';
 import type { Family, WeeklyStats } from '../types';
+import FamilyListItem from '../components/FamilyListItem';
+import WeeklyChart from '../components/WeeklyChart';
 
 const Dashboard: React.FC = () => {
   const { t } = useLanguage();
@@ -49,7 +49,7 @@ const Dashboard: React.FC = () => {
       });
     }
     
-    return weeks;
+    return weeks.reverse();
   };
 
   // Effect: Fetch families data on component mount
@@ -166,6 +166,15 @@ const Dashboard: React.FC = () => {
     <div className="container">
       <h1 className="page-title">{t('dashboard')}</h1>
 
+      {/* Weekly Chart */}
+      <section className="card">
+        <WeeklyChart 
+          data={weeklyStats}
+          selectedWeeks={selectedWeeks}
+          onWeekClick={handleWeekClick}
+        />
+      </section>
+
       {/* Weekly Registration Stats */}
       <section className="card">
         <h2 className="card-header">
@@ -173,7 +182,10 @@ const Dashboard: React.FC = () => {
         </h2>
         
         <div className="stats-grid">
-          {weeklyStats.map((stat, index) => (
+          {weeklyStats
+            .slice()
+            .sort((a, b) => new Date(b.week).getTime() - new Date(a.week).getTime())
+            .map((stat) => (
             <div 
               key={stat.week}
               className={`stat-card ${
@@ -220,72 +232,20 @@ const Dashboard: React.FC = () => {
         </h2>
         
         <div className="family-list">
-          {filteredFamilies.map(family => (
-            <Link 
-              key={family.id} 
-              to={`/edit/${family.id}`} 
-              className="family-item"
-            >
-              <div className="family-item-content">
-                <div className="family-item-left">
-                  <div className="family-photo">
-                    {family.family_picture_url ? (
-                      <img 
-                        src={family.family_picture_url} 
-                        alt={family.family_name} 
-                      />
-                    ) : (
-                      <span className="family-photo-placeholder">
-                        No Photo
-                      </span>
-                    )}
-                  </div>
-                  
-                  <div className="family-info">
-                    <h3>{family.family_name}</h3>
-                    <p>
-                      {t(
-                        family.registration_status === 'Visitor'
-                          ? 'visitor'
-                          : 'registrationComplete'
-                      )}
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="family-item-right">
-                  <div className="family-date">
-                    {formatDateOnly(family.input_date)}
-                  </div>
-                  
-                  <div className="family-children">
-                    {family.members?.filter(m => m.relationship === 'child').length || 0}{' '}
-                    {t('numberOfChildren')}
-                  </div>
-                  
-                  {family.main_supporter?.name && (
-                    <p style={{ 
-                      marginTop: '0.25rem', 
-                      fontSize: '0.875rem', 
-                      color: '#059669' 
-                    }}>
-                      팀원: {family.main_supporter.name}
-                    </p>
-                  )}
-                  
-                  {family.life_group && (
-                    <p style={{ 
-                      marginTop: '0.25rem', 
-                      fontSize: '0.875rem', 
-                      color: '#7c3aed' 
-                    }}>
-                      목장: {family.life_group}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </Link>
-          ))}
+          {filteredFamilies
+            .slice()
+            .sort((a, b) => {
+              const dateA = new Date(a.input_date);
+              const dateB = new Date(b.input_date);
+              return dateB.getTime() - dateA.getTime(); // Most recent first
+            })
+            .map(family => (
+              <FamilyListItem 
+                key={family.id}
+                family={family}
+                variant="dashboard"
+              />
+            ))}
         </div>
       </section>
     </div>

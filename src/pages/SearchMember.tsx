@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { apiService } from '../services/api';
-import { getSundayDates, formatDateOnly } from '../utils/dateUtils';
+import { getSundayDates } from '../utils/dateUtils';
 import type { Family, Supporter } from '../types';
+import FamilyListItem from '../components/FamilyListItem';
 
 const SearchMember: React.FC = () => {
   const { t } = useLanguage();
@@ -91,9 +91,6 @@ const SearchMember: React.FC = () => {
     setFilteredFamilies(filtered);
   }, [searchName, filterDateFrom, filterDateTo, filterStatus, filterSupporterIds, families]);
 
-  const getChildrenCount = (family: Family) => {
-    return family.members?.filter(member => member.relationship === 'child').length || 0;
-  };
 
   const handleSupporterToggle = (supporterId: number) => {
     setFilterSupporterIds(prev => {
@@ -274,45 +271,11 @@ const SearchMember: React.FC = () => {
         ) : (
           <div className="family-list">
             {filteredFamilies.map(family => (
-              <Link key={family.id} to={`/edit/${family.id}`} className="family-item">
-                <div className="family-item-content">
-                  <div className="family-item-left">
-                    <div className="family-photo" style={{ width: '4rem', height: '4rem' }}>
-                      {family.family_picture_url ? (
-                        <img
-                          src={family.family_picture_url}
-                          alt={family.family_name}
-                          style={{ width: '4rem', height: '4rem' }}
-                        />
-                      ) : (
-                        <span className="family-photo-placeholder">No Photo</span>
-                      )}
-                    </div>
-                    <div className="family-info">
-                      <h3 style={{ fontSize: '1.125rem' }}>{family.family_name}</h3>
-                      <p>
-                        {t(
-                          family.registration_status === 'Visitor'
-                            ? 'visitor'
-                            : 'registrationComplete'
-                        )}
-                      </p>
-                      <p style={{ marginTop: '0.25rem' }}>{formatDateOnly(family.input_date)}</p>
-             
-                    </div>
-                  </div>
-                  <div className="family-item-right">
-                    <div className="family-date">
-                      {getChildrenCount(family)} {t('numberOfChildren')}
-                    </div>
-                    <div className="family-children">{family.members?.length || 0} members</div>
-                      {family.main_supporter?.name && <p style={{ marginTop: '0.25rem', fontSize: '0.875rem', color: '#059669' }}>팀원: {family.main_supporter?.name}</p>}
-                      {family.life_group && <p style={{ marginTop: '0.25rem', fontSize: '0.875rem', color: '#7c3aed' }}>목장: {family.life_group}</p>}
-
-                  </div>
-                  
-                </div>
-              </Link>
+              <FamilyListItem 
+                key={family.id}
+                family={family}
+                variant="search"
+              />
             ))}
           </div>
         )}

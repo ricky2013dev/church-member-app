@@ -192,4 +192,5 @@ SUPABASE_ANON_KEY=your_supabase_anon_key
 - Use CSS mobile-first approach with @media breakpoints
 - Ensure touch targets meet 44px minimum size
 - Test navigation and form submission on small screens
-- when save the file, make code prettier by improving formatting, organization, and readability.
+- when save the file, make code prettier by improving formatting, organization, and readability
+- Try to create reusable component if there is duplication in the code 
