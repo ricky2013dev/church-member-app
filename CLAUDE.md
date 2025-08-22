@@ -194,3 +194,12 @@ SUPABASE_ANON_KEY=your_supabase_anon_key
 - Test navigation and form submission on small screens
 - when save the file, make code prettier by improving formatting, organization, and readability
 - Try to create reusable component if there is duplication in the code 
+
+
+### CSS
+- Better Maintainability: Styles are centralized and organized
+- Consistent Design: Common patterns reused across components
+- Mobile Optimization: All touch targets meet 44px minimum
+- Performance: No inline style recalculation on re-renders
+- Modularity: Component-specific styles are scoped
+- Theme Support: Easy to modify colors and spacing globally

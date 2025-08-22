@@ -850,6 +850,81 @@ body {
   }
 }
 
+/* Toggle Component */
+.toggle-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.toggle-button-group {
+  display: flex;
+  background: #f3f4f6;
+  border-radius: 12px;
+  padding: 4px;
+  gap: 2px;
+}
+
+.toggle-button {
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  min-width: 100px;
+  min-height: 44px;
+}
+
+.toggle-button.active {
+  background: #2563eb;
+  color: white;
+  font-weight: 600;
+}
+
+/* Grid Layouts */
+.responsive-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.single-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Chart Containers */
+.chart-container {
+  width: 100%;
+}
+
+.monthly-chart-container {
+  margin-bottom: 2rem;
+}
+
+/* Button Styles */
+.btn-clear {
+  margin-top: 10px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: #f9fafb;
+  color: #374151;
+  font-size: 14px;
+  cursor: pointer;
+  min-height: 44px;
+  transition: all 0.2s ease;
+}
+
+.btn-clear:hover {
+  background: #e5e7eb;
+}
+
 /* Utility Classes */
 .text-center {
   text-align: center;

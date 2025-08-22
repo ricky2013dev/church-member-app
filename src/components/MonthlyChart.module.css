@@ -1,0 +1,66 @@
+/* MonthlyChart Component Styles */
+
+.monthlyChart {
+  margin-bottom: 2rem;
+}
+
+.chartHeader {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.chartTitle {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.chartSubtitle {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.chartContainer {
+  width: 100%;
+  height: 300px;
+}
+
+.chartLegend {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.legendColor {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 0.25rem;
+}
+
+.legendColorMonthly {
+  background-color: #dc2626;
+}
+
+.legendColorTotal {
+  background-color: #ea580c;
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+  .chartLegend {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+}

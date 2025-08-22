@@ -9,28 +9,28 @@ import {
   ResponsiveContainer,
   Bar,
 } from 'recharts';
-import type { WeeklyStats } from '../types';
-import styles from './WeeklyChart.module.css';
+import type { MonthlyStats } from '../types';
+import styles from './MonthlyChart.module.css';
 
-interface WeeklyChartProps {
-  data: WeeklyStats[];
-  selectedWeeks: string[];
-  onWeekClick: (week: string) => void;
+interface MonthlyChartProps {
+  data: MonthlyStats[];
+  selectedMonths: string[];
+  onMonthClick: (month: string) => void;
 }
 
-const WeeklyChart: React.FC<WeeklyChartProps> = ({ 
+const MonthlyChart: React.FC<MonthlyChartProps> = ({ 
   data, 
-  selectedWeeks, 
-  onWeekClick 
+  selectedMonths, 
+  onMonthClick 
 }) => {
   // Transform data for chart display
   const chartData = data.map(stat => ({
     ...stat,
-    weekDisplay: new Date(stat.week).toLocaleDateString('en-US', { 
+    monthDisplay: new Date(stat.month + '-01').toLocaleDateString('en-US', { 
       month: 'short', 
-      day: 'numeric' 
+      year: '2-digit' 
     }),
-    isSelected: selectedWeeks.includes(stat.week),
+    isSelected: selectedMonths.includes(stat.month),
   }));
 
   // Custom tooltip
@@ -39,12 +39,12 @@ const WeeklyChart: React.FC<WeeklyChartProps> = ({
       const data = payload[0].payload;
       return (
         <div className="chart-tooltip">
-          <p className="tooltip-label">Week of {label}</p>
+          <p className="tooltip-label">Month of {label}</p>
           <p className="tooltip-value">
-            New Families: <span style={{ color: '#2563eb' }}>{data.new_families}</span>
+            New Families: <span style={{ color: '#dc2626' }}>{data.new_families}</span>
           </p>
           <p className="tooltip-value">
-            Total Families: <span style={{ color: '#059669' }}>{data.total_families}</span>
+            Total Families: <span style={{ color: '#ea580c' }}>{data.total_families}</span>
           </p>
           <p className="tooltip-hint">Click to select/deselect</p>
         </div>
@@ -55,15 +55,15 @@ const WeeklyChart: React.FC<WeeklyChartProps> = ({
 
   // Handle bar click
   const handleBarClick = (data: any) => {
-    if (data && data.week) {
-      onWeekClick(data.week);
+    if (data && data.month) {
+      onMonthClick(data.month);
     }
   };
 
   return (
-    <div className={styles.weeklyChart}>
+    <div className={styles.monthlyChart}>
       <div className={styles.chartHeader}>
-        <h3 className={styles.chartTitle}>Weekly Trends</h3>
+        <h3 className={styles.chartTitle}>Monthly Trends</h3>
       </div>
       
       <ResponsiveContainer width="100%" height={300}>
@@ -78,7 +78,7 @@ const WeeklyChart: React.FC<WeeklyChartProps> = ({
         >
           <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
           <XAxis 
-            dataKey="weekDisplay" 
+            dataKey="monthDisplay" 
             stroke="#6b7280"
             fontSize={12}
             tick={{ fill: '#6b7280' }}
@@ -93,7 +93,7 @@ const WeeklyChart: React.FC<WeeklyChartProps> = ({
           {/* New families bars */}
           <Bar 
             dataKey="new_families" 
-            fill="#2563eb"
+            fill="#dc2626"
             name="New Families"
             cursor="pointer"
             onClick={handleBarClick}
@@ -103,9 +103,9 @@ const WeeklyChart: React.FC<WeeklyChartProps> = ({
           <Line
             type="monotone"
             dataKey="total_families"
-            stroke="#059669"
+            stroke="#ea580c"
             strokeWidth={2}
-            dot={{ fill: '#059669', strokeWidth: 2, r: 4 }}
+            dot={{ fill: '#ea580c', strokeWidth: 2, r: 4 }}
             name="Total Families"
           />
         </ComposedChart>
@@ -113,8 +113,8 @@ const WeeklyChart: React.FC<WeeklyChartProps> = ({
       
       <div className={styles.chartLegend}>
         <div className={styles.legendItem}>
-          <div className={`${styles.legendColor} ${styles.legendColorWeekly}`}></div>
-          <span>New Families (Weekly)</span>
+          <div className={`${styles.legendColor} ${styles.legendColorMonthly}`}></div>
+          <span>New Families (Monthly)</span>
         </div>
         <div className={styles.legendItem}>
           <div className={`${styles.legendColor} ${styles.legendColorTotal}`}></div>
@@ -125,4 +125,4 @@ const WeeklyChart: React.FC<WeeklyChartProps> = ({
   );
 };
 
-export default WeeklyChart;
+export default MonthlyChart;

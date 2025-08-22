@@ -73,4 +73,10 @@ export interface WeeklyStats {
   total_families: number;
 }
 
+export interface MonthlyStats {
+  month: string;
+  new_families: number;
+  total_families: number;
+}
+
 export type Language = 'ko' | 'en';
