@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "functions": {
+    "server/api/index.js": {
+      "maxDuration": 30
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/server/api/index.js"
+    }
+  ]
+}
