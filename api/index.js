@@ -1,9 +1,11 @@
-const express = require('express');
-const cors = require('cors');
-const { Pool } = require('pg');
-const multer = require('multer');
-const path = require('path');
-const { createClient } = require('@supabase/supabase-js');
+import express from 'express';
+import cors from 'cors';
+import pg from 'pg';
+import multer from 'multer';
+import path from 'path';
+import { createClient } from '@supabase/supabase-js';
+
+const { Pool } = pg;
 
 const app = express();
 
@@ -1233,4 +1235,4 @@ app.get('/', (req, res) => {
   res.json({ message: 'Church Member API is running', status: 'OK' });
 });
 
-module.exports = app;
+export default app;
