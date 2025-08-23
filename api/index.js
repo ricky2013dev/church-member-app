@@ -7,20 +7,33 @@ const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
 
-// Database connection
-const pool = new Pool({
-  host: process.env.DB_HOST || '127.0.0.1',
-  port: process.env.DB_PORT || 5432,
-  database: process.env.DB_NAME || 'church_members',
-  user: process.env.DB_USER || 'church_app',
-  password: process.env.DB_PASSWORD || 'church_password',
-});
+// Database connection with error handling
+let pool = null;
+let supabase = null;
 
-// Supabase client for storage
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
-);
+try {
+  // Only create pool if environment variables are available
+  if (process.env.DB_HOST && process.env.DB_PASSWORD) {
+    pool = new Pool({
+      host: process.env.DB_HOST,
+      port: process.env.DB_PORT || 5432,
+      database: process.env.DB_NAME || 'postgres',
+      user: process.env.DB_USER || 'postgres',
+      password: process.env.DB_PASSWORD,
+      ssl: { rejectUnauthorized: false }, // Required for Supabase
+    });
+  }
+
+  // Supabase client for storage
+  if (process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY) {
+    supabase = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_ANON_KEY
+    );
+  }
+} catch (error) {
+  console.error('Database initialization error:', error);
+}
 
 // Mock data for fallback
 const mockFamilies = [
@@ -123,6 +136,11 @@ const upload = multer({
 // Get all families with members
 app.get('/api/families', async (req, res) => {
   try {
+    if (!pool) {
+      console.log('Database not available, using mock data');
+      return res.json(mockFamilies);
+    }
+
     const familiesQuery = `
       SELECT f.*, 
              json_build_object(
@@ -585,6 +603,20 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
 // Get all supporters
 app.get('/api/supporters', async (req, res) => {
   try {
+    if (!pool) {
+      console.log('Database not available, using mock supporters data');
+      const mockSupporters = [
+        {
+          id: 1,
+          name: 'Test Supporter',
+          group_code: 'ALL',
+          status: 'on',
+          gender: 'male',
+        },
+      ];
+      return res.json(mockSupporters);
+    }
+
     const { group_code, status } = req.query;
 
     let query = 'SELECT * FROM supporters ORDER BY status DESC, name ASC';
