@@ -58,3 +58,4 @@ server/test-db.js
 
 # Claude settings
 ../.claude/
+.vercel
