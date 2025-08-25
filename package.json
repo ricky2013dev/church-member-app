@@ -4,7 +4,6 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "pre-build": "npm install && cd server && npm install",
     "dev": "concurrently \"dev:frontend\" \"npm run dev:server\" --names \"FRONTEND,SERVER\" --prefix-colors \"green,blue\"",
     "start": "concurrently \"dev:frontend\" \"npm run dev:server\" --names \"FRONTEND,SERVER\" --prefix-colors \"green,blue\"",
     "dev:frontend": "vite",
