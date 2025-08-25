@@ -4,8 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"dev:frontend\" \"npm run dev:server\" --names \"FRONTEND,SERVER\" --prefix-colors \"green,blue\"",
-    "start": "concurrently \"dev:frontend\" \"npm run dev:server\" --names \"FRONTEND,SERVER\" --prefix-colors \"green,blue\"",
+    "start": "concurrently \"npm run dev:server\" \"npm run dev:frontend\" --names \"SERVER,FRONTEND\" --prefix-colors \"blue,green\" --delay 3000",
     "dev:frontend": "vite",
     "dev:server": "cd server && npm run start",
     "build": "tsc -b && vite build",
